@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '@/context/auth-context'
+import { LayoutProvider } from '@/context/layout-context'
 import './globals.css'
 
 const inter = Inter({
@@ -19,7 +20,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="id">
       <body className={inter.className}>
         <AuthProvider>
-          {children}
+          <LayoutProvider>
+            {children}
+          </LayoutProvider>
         </AuthProvider>
       </body>
     </html>
