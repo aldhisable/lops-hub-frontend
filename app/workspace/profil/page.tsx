@@ -52,7 +52,7 @@ export default function ProfilUsaha() {
     if (!umkm) return;
     setSaving(true);
     try {
-      await umkmApi.update(umkm.id, {
+      await umkmApi.updateMe({
         name: form.name,
         category: form.category,
         establishedYear: form.establishedYear ? parseInt(form.establishedYear) : undefined,
