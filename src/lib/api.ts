@@ -48,6 +48,7 @@ export const umkmApi = {
   delete: (id: string) => api.delete(`/umkm/${id}`),
   archive: (id: string) => api.put(`/umkm/${id}`, { status: 'INACTIVE' }),
   products: (umkmId: string) => api.get(`/umkm/${umkmId}/products`),
+  createProduct: (umkmId: string, data: Record<string, unknown>) => api.post(`/umkm/${umkmId}/products`, data),
 };
 
 // Programs
