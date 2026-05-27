@@ -11,7 +11,8 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
-import { umkmApi } from '@/lib/api';
+import { umkmApi, lopsSalesApi, financialApi } from '@/lib/api';
+import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
 
 const MONTHS_ID = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -71,20 +72,82 @@ interface UMKMData {
   financials: Array<{ month: number; year: number; revenue: number; profit: number | null }>;
 }
 
+interface LopsSalesEntry { month: number; year: number; amount: number; gerai: string | null; notes: string | null }
+
+const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_MONTH = new Date().getMonth() + 1;
+
 export function UMKMProfilePage({ id }: { id?: string }) {
+  const { user: authUser } = useAuth();
+  const isAdmin = authUser?.role === 'ADMIN_PUSAT' || authUser?.role === 'ADMIN_REGIONAL';
+
   const [activeTab, setActiveTab] = useState('Overview');
   const [umkm, setUmkm] = useState<UMKMData | null>(null);
+  const [lopsSales, setLopsSales] = useState<LopsSalesEntry[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Form input LopsSales (admin)
+  const [lopsMonth, setLopsMonth] = useState(CURRENT_MONTH);
+  const [lopsYear, setLopsYear] = useState(CURRENT_YEAR);
+  const [lopsAmount, setLopsAmount] = useState('');
+  const [lopsGerai, setLopsGerai] = useState('');
+  const [lopsNotes, setLopsNotes] = useState('');
+  const [lopsSaving, setLopsSaving] = useState(false);
+  const [lopsSaveMsg, setLopsSaveMsg] = useState('');
 
   const tabs = ['Overview', 'Products', 'Programs', 'Documents', 'Growth', 'Timeline'];
 
   useEffect(() => {
     if (!id) { setLoading(false); return; }
-    umkmApi.get(id)
-      .then((res) => setUmkm(res.data))
+    Promise.all([
+      umkmApi.get(id),
+      lopsSalesApi.getByUmkm(id),
+    ])
+      .then(([umkmRes, lopsRes]) => {
+        setUmkm(umkmRes.data);
+        setLopsSales(lopsRes.data);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
+
+  async function handleSaveLops(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id || !lopsAmount) return;
+    setLopsSaving(true);
+    setLopsSaveMsg('');
+    try {
+      const res = await lopsSalesApi.upsert(id, {
+        month: lopsMonth,
+        year: lopsYear,
+        amount: parseFloat(lopsAmount),
+        gerai: lopsGerai || undefined,
+        notes: lopsNotes || undefined,
+      });
+      setLopsSales(prev => {
+        const filtered = prev.filter(l => !(l.month === lopsMonth && l.year === lopsYear));
+        return [...filtered, res.data];
+      });
+      setLopsSaveMsg('Data berhasil disimpan');
+      setLopsAmount('');
+      setLopsGerai('');
+      setLopsNotes('');
+    } catch {
+      setLopsSaveMsg('Gagal menyimpan data');
+    } finally {
+      setLopsSaving(false);
+    }
+  }
+
+  async function handleDeleteLops(month: number, year: number) {
+    if (!id) return;
+    try {
+      await lopsSalesApi.delete(id, month, year);
+      setLopsSales(prev => prev.filter(l => !(l.month === month && l.year === year)));
+    } catch {
+      // silently fail
+    }
+  }
 
   const revenueTrendData = (umkm?.financials ?? [])
     .filter((f) => f.year === new Date().getFullYear())
@@ -342,35 +405,152 @@ export function UMKMProfilePage({ id }: { id?: string }) {
       )}
 
       {/* Growth Tab */}
-      {activeTab === 'Growth' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {revenueTrendData.length > 0 ? (
-            <AnalyticsChart
-              title="Tren Omzet 12 Bulan Terakhir"
-              data={revenueTrendData}
-              dataKey="revenue"
-              xAxisKey="month"
-              height={300}
-              color="#8b5cf6"
-              valueFormatter={(val) => `Rp ${val} Jt`}
-            />
-          ) : (
-            <GlassCard className="p-12 flex items-center justify-center text-slate-400">Belum ada data keuangan.</GlassCard>
-          )}
-          <GlassCard className="p-6">
-            <h3 className="font-semibold text-lg text-slate-900 mb-4">Ringkasan Keuangan {new Date().getFullYear()}</h3>
-            <div className="flex flex-col gap-3 mt-6">
-              {umkm.financials.filter((f) => f.year === new Date().getFullYear()).map((f) => (
-                <div key={`${f.month}-${f.year}`} className="flex justify-between items-center text-sm py-2 border-b border-slate-50">
-                  <span className="text-slate-600">{MONTHS_ID[f.month]}</span>
-                  <span className="font-semibold text-slate-900">Rp {f.revenue.toLocaleString('id-ID')} Jt</span>
-                  {f.profit != null && <span className="text-emerald-600 text-xs">Profit: Rp {f.profit.toFixed(0)} Jt</span>}
-                </div>
-              ))}
+      {activeTab === 'Growth' && (() => {
+        const currentYear = new Date().getFullYear();
+        const lopsThisYear = lopsSales.filter(l => l.year === currentYear).sort((a, b) => a.month - b.month);
+        const lopsTrendData = lopsThisYear.map(l => ({ month: MONTHS_ID[l.month] ?? String(l.month), revenue: l.amount }));
+        const finThisYear = umkm.financials.filter(f => f.year === currentYear).sort((a, b) => a.month - b.month);
+        const finTrendData = finThisYear.map(f => ({ month: MONTHS_ID[f.month] ?? String(f.month), revenue: f.revenue }));
+        const totalLops = lopsThisYear.reduce((s, l) => s + l.amount, 0);
+        const totalFin = finThisYear.reduce((s, f) => s + f.revenue, 0);
+        return (
+          <div className="flex flex-col gap-6">
+            {/* KPI summary */}
+            <div className="grid grid-cols-2 gap-4">
+              <GlassCard className="p-5">
+                <div className="text-xs text-slate-500 mb-1">Penjualan Gerai LOPs {currentYear}</div>
+                <div className="text-xl font-bold text-teal-700">Rp {totalLops.toLocaleString('id-ID')} Jt</div>
+                <div className="text-xs text-slate-400 mt-1">Diinput oleh admin</div>
+              </GlassCard>
+              <GlassCard className="p-5">
+                <div className="text-xs text-slate-500 mb-1">Omzet Umum {currentYear}</div>
+                <div className="text-xl font-bold text-purple-700">Rp {totalFin.toLocaleString('id-ID')} Jt</div>
+                <div className="text-xs text-slate-400 mt-1">Self-report oleh UMKM</div>
+              </GlassCard>
             </div>
-          </GlassCard>
-        </div>
-      )}
+
+            {/* Chart penjualan LOPs */}
+            {lopsTrendData.length > 0 ? (
+              <AnalyticsChart
+                title="Tren Penjualan Gerai LOPs"
+                subtitle={`Data konsinyasi ${currentYear} — diinput admin`}
+                data={lopsTrendData}
+                dataKey="revenue"
+                xAxisKey="month"
+                height={250}
+                color="#0d9488"
+                valueFormatter={(val) => `Rp ${val} Jt`}
+              />
+            ) : (
+              <GlassCard className="p-8 text-center text-slate-400 text-sm">
+                Belum ada data penjualan gerai LOPs untuk {currentYear}.
+              </GlassCard>
+            )}
+
+            {/* Form input LopsSales — admin only */}
+            {isAdmin && (
+              <GlassCard className="p-6">
+                <h3 className="font-semibold text-slate-900 mb-1">Input Penjualan Gerai LOPs</h3>
+                <p className="text-xs text-slate-500 mb-4">Tambah atau perbarui data penjualan konsinyasi bulanan.</p>
+                <form onSubmit={handleSaveLops} className="flex flex-col gap-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-slate-600 mb-1 block">Bulan</label>
+                      <select value={lopsMonth} onChange={e => setLopsMonth(parseInt(e.target.value))}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-300">
+                        {MONTHS_ID.slice(1).map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-slate-600 mb-1 block">Tahun</label>
+                      <select value={lopsYear} onChange={e => setLopsYear(parseInt(e.target.value))}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-300">
+                        {[CURRENT_YEAR, CURRENT_YEAR - 1, CURRENT_YEAR - 2].map(y => <option key={y} value={y}>{y}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-600 mb-1 block">Nilai Penjualan (Juta Rupiah)</label>
+                    <input type="number" min="0" step="0.1" placeholder="Contoh: 85" value={lopsAmount}
+                      onChange={e => setLopsAmount(e.target.value)} required
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-600 mb-1 block">Nama Gerai (opsional)</label>
+                    <input type="text" placeholder="Contoh: LOPs Surabaya" value={lopsGerai}
+                      onChange={e => setLopsGerai(e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-600 mb-1 block">Catatan (opsional)</label>
+                    <input type="text" placeholder="Catatan tambahan..." value={lopsNotes}
+                      onChange={e => setLopsNotes(e.target.value)}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                  </div>
+                  <button type="submit" disabled={lopsSaving}
+                    className="bg-teal-600 hover:bg-teal-700 disabled:opacity-60 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors">
+                    {lopsSaving ? 'Menyimpan...' : 'Simpan Data Penjualan'}
+                  </button>
+                  {lopsSaveMsg && (
+                    <p className={`text-sm font-medium ${lopsSaveMsg.includes('berhasil') ? 'text-emerald-600' : 'text-red-500'}`}>
+                      {lopsSaveMsg}
+                    </p>
+                  )}
+                </form>
+              </GlassCard>
+            )}
+
+            {/* Detail tabel LOPs + Omzet umum */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <GlassCard className="p-6">
+                <h3 className="font-semibold text-slate-900 mb-4">Detail Penjualan Gerai LOPs</h3>
+                {lopsThisYear.length === 0 ? (
+                  <div className="text-sm text-slate-400 py-4 text-center">Belum ada data.</div>
+                ) : (
+                  <div className="flex flex-col divide-y divide-slate-50">
+                    {lopsThisYear.sort((a, b) => b.month - a.month).map(l => (
+                      <div key={`${l.month}-${l.year}`} className="flex justify-between items-center py-2.5">
+                        <div>
+                          <span className="text-sm font-medium text-slate-700">{MONTHS_ID[l.month]}</span>
+                          {l.gerai && <span className="text-xs text-slate-400 ml-2">— {l.gerai}</span>}
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-teal-700">Rp {l.amount.toLocaleString('id-ID')} Jt</span>
+                          {isAdmin && (
+                            <button onClick={() => handleDeleteLops(l.month, l.year)}
+                              className="text-xs text-red-400 hover:text-red-600 transition-colors px-2 py-1 rounded hover:bg-red-50">
+                              Hapus
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </GlassCard>
+              <GlassCard className="p-6">
+                <h3 className="font-semibold text-slate-900 mb-1">Omzet Umum (Self-Report)</h3>
+                <p className="text-xs text-slate-400 mb-4">Dilaporkan langsung oleh UMKM</p>
+                {finThisYear.length === 0 ? (
+                  <div className="text-sm text-slate-400 py-4 text-center">Belum ada laporan omzet.</div>
+                ) : (
+                  <div className="flex flex-col divide-y divide-slate-50">
+                    {finThisYear.sort((a, b) => b.month - a.month).map(f => (
+                      <div key={`${f.month}-${f.year}`} className="flex justify-between items-center py-2.5">
+                        <span className="text-sm text-slate-600">{MONTHS_ID[f.month]}</span>
+                        <div className="text-right">
+                          <div className="text-sm font-bold text-slate-900">Rp {f.revenue.toLocaleString('id-ID')} Jt</div>
+                          {f.profit != null && <div className="text-xs text-emerald-600">Profit: Rp {f.profit.toFixed(0)} Jt</div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </GlassCard>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Timeline Tab */}
       {activeTab === 'Timeline' && (

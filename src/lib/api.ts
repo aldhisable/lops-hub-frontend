@@ -68,6 +68,26 @@ export const documentsApi = {
   delete: (id: string) => api.delete(`/documents/${id}`),
 };
 
+// LOPs Sales (penjualan konsinyasi gerai)
+export const lopsSalesApi = {
+  getByUmkm: (umkmId: string, year?: number) =>
+    api.get(`/lops-sales/${umkmId}`, { params: year ? { year } : {} }),
+  upsert: (umkmId: string, data: { month: number; year: number; amount: number; gerai?: string; notes?: string }) =>
+    api.post(`/lops-sales/${umkmId}`, data),
+  delete: (umkmId: string, month: number, year: number) =>
+    api.delete(`/lops-sales/${umkmId}/${month}/${year}`),
+};
+
+// Financial (omzet umum self-report UMKM)
+export const financialApi = {
+  getMe: () => api.get('/financial/me'),
+  upsertMe: (data: { month: number; year: number; revenue: number; profit?: number }) =>
+    api.post('/financial/me', data),
+  getByUmkm: (umkmId: string) => api.get(`/financial/${umkmId}`),
+  upsertByUmkm: (umkmId: string, data: { month: number; year: number; revenue: number; profit?: number }) =>
+    api.post(`/financial/${umkmId}`, data),
+};
+
 // Analytics
 export const analyticsApi = {
   dashboard: () => api.get('/analytics/dashboard'),
