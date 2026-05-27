@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { Download, Plus, MoreHorizontal, Search } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Download, Plus, MoreHorizontal, Search, Pencil, Archive, Trash2, X, AlertTriangle } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { DataTable } from '@/components/ui/data-table';
 import { FilterChips } from '@/components/ui/filter-chips';
@@ -19,12 +19,135 @@ interface UMKMRow {
   _count: { participations: number };
 }
 
+type ConfirmType = 'archive' | 'delete';
+
+interface ConfirmState {
+  type: ConfirmType;
+  id: string;
+  name: string;
+}
+
 const CLASS_COLORS: Record<string, string> = {
   PLATINUM: 'bg-blue-100 text-blue-700',
   GOLD: 'bg-amber-100 text-amber-700',
   SILVER: 'bg-slate-200 text-slate-700',
   BRONZE: 'bg-orange-100 text-orange-700',
 };
+
+function ActionDropdown({ row, onArchive, onDelete }: {
+  row: UMKMRow;
+  onArchive: (row: UMKMRow) => void;
+  onDelete: (row: UMKMRow) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-700 transition-colors inline-flex"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 overflow-hidden">
+          <Link
+            href={`/dashboard/umkm/${row.id}`}
+            className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            onClick={() => setOpen(false)}
+          >
+            <Pencil className="w-4 h-4 text-slate-400" />
+            Edit
+          </Link>
+          <button
+            onClick={() => { setOpen(false); onArchive(row); }}
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-amber-600 hover:bg-amber-50 transition-colors"
+          >
+            <Archive className="w-4 h-4 text-amber-400" />
+            Arsip
+          </button>
+          <div className="my-1 border-t border-slate-100" />
+          <button
+            onClick={() => { setOpen(false); onDelete(row); }}
+            className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <Trash2 className="w-4 h-4 text-red-400" />
+            Hapus
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ConfirmModal({ confirm, loading, onCancel, onConfirm }: {
+  confirm: ConfirmState;
+  loading: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const isDelete = confirm.type === 'delete';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
+        <button
+          onClick={onCancel}
+          className="absolute top-4 right-4 p-1.5 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${isDelete ? 'bg-red-100' : 'bg-amber-100'}`}>
+          <AlertTriangle className={`w-6 h-6 ${isDelete ? 'text-red-500' : 'text-amber-500'}`} />
+        </div>
+
+        <h2 className="text-lg font-bold text-slate-900 mb-2">
+          {isDelete ? 'Hapus UMKM?' : 'Arsipkan UMKM?'}
+        </h2>
+        <p className="text-sm text-slate-500 mb-6">
+          {isDelete
+            ? <>Anda akan menghapus <span className="font-semibold text-slate-700">{confirm.name}</span> secara permanen. Tindakan ini tidak dapat dibatalkan.</>
+            : <>Anda akan mengarsipkan <span className="font-semibold text-slate-700">{confirm.name}</span>. UMKM ini akan berstatus tidak aktif dan bisa dipulihkan kembali.</>
+          }
+        </p>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            className={`flex-1 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors disabled:opacity-50 ${
+              isDelete ? 'bg-red-500 hover:bg-red-600' : 'bg-amber-500 hover:bg-amber-600'
+            }`}
+          >
+            {loading ? 'Memproses...' : isDelete ? 'Ya, Hapus' : 'Ya, Arsipkan'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function UMKMDirectoryPage() {
   const [data, setData] = useState<UMKMRow[]>([]);
@@ -33,6 +156,8 @@ export function UMKMDirectoryPage() {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('Semua Kelas');
   const [page, setPage] = useState(1);
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const filterToApi: Record<string, string | undefined> = {
     'Semua Kelas': undefined,
@@ -62,6 +187,24 @@ export function UMKMDirectoryPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handleConfirm = async () => {
+    if (!confirm) return;
+    setActionLoading(true);
+    try {
+      if (confirm.type === 'delete') {
+        await umkmApi.delete(confirm.id);
+      } else {
+        await umkmApi.archive(confirm.id);
+      }
+      setConfirm(null);
+      fetchData();
+    } catch {
+      // silently fail — could add toast here
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   const columns = [
     {
@@ -98,15 +241,26 @@ export function UMKMDirectoryPage() {
       header: 'Aksi',
       accessor: 'id' as const,
       render: (_: string, row: UMKMRow) => (
-        <Link href={`/dashboard/umkm/${row.id}`} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-blue-600 transition-colors inline-flex">
-          <MoreHorizontal className="w-4 h-4" />
-        </Link>
+        <ActionDropdown
+          row={row}
+          onArchive={(r) => setConfirm({ type: 'archive', id: r.id, name: r.name })}
+          onDelete={(r) => setConfirm({ type: 'delete', id: r.id, name: r.name })}
+        />
       ),
     },
   ];
 
   return (
     <>
+      {confirm && (
+        <ConfirmModal
+          confirm={confirm}
+          loading={actionLoading}
+          onCancel={() => setConfirm(null)}
+          onConfirm={handleConfirm}
+        />
+      )}
+
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Direktori UMKM Binaan</h1>
