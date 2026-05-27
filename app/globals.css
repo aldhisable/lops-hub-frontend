@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "../src/index.css";
+@import "../src/App.css";
+@import "leaflet/dist/leaflet.css";
+
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-container: var(--surface-container);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-secondary: var(--secondary);
+  --color-tertiary: var(--tertiary);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-glass: var(--glass-bg);
+  --font-sans: var(--body);
+  --font-heading: var(--heading);
+  --radius-card: 0.5rem;
+  --shadow-soft: var(--shadow-soft);
+}
