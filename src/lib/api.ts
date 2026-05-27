@@ -59,6 +59,15 @@ export const programsApi = {
   join: (umkmId: string, programId: string) => api.post('/programs/join', { umkmId, programId }),
 };
 
+// Documents
+export const documentsApi = {
+  list: () => api.get('/documents'),
+  upload: (formData: FormData) => api.post('/documents', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  delete: (id: string) => api.delete(`/documents/${id}`),
+};
+
 // Analytics
 export const analyticsApi = {
   dashboard: () => api.get('/analytics/dashboard'),
