@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, Save, Loader2, ChevronDown, Search } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
 import { authApi, umkmApi } from '@/lib/api';
@@ -59,6 +59,89 @@ const KATEGORI = [
 
 const KLASIFIKASI = ['PLATINUM', 'GOLD', 'SILVER', 'BRONZE'];
 
+function SearchableSelect({ options, value, onChange, placeholder, disabled = false }: {
+  options: Wilayah[];
+  value: string;
+  onChange: (opt: Wilayah) => void;
+  placeholder?: string;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const selected = options.find(o => o.name === value);
+  const filtered = options.filter(o => o.name.toLowerCase().includes(query.toLowerCase()));
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  const handleOpen = () => {
+    if (disabled) return;
+    setQuery('');
+    setOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const handleSelect = (opt: Wilayah) => {
+    onChange(opt);
+    setOpen(false);
+    setQuery('');
+  };
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={handleOpen}
+        disabled={disabled}
+        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${selected ? 'text-slate-900' : 'text-slate-400'}`}
+      >
+        <span className="truncate">{selected ? selected.name : placeholder}</span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 flex-shrink-0 ml-2 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden">
+          <div className="p-2 border-b border-slate-100">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Cari..."
+                className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+            </div>
+          </div>
+          <ul className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <li className="px-4 py-3 text-sm text-slate-400 text-center">Tidak ditemukan</li>
+            ) : filtered.map(opt => (
+              <li
+                key={opt.id}
+                onClick={() => handleSelect(opt)}
+                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors ${opt.name === value ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'}`}
+              >
+                {opt.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TambahUMKM() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -100,13 +183,6 @@ export default function TambahUMKM() {
   }, [form.provinceId]);
 
   const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
-
-  const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const opt = e.target.selectedOptions[0];
-    set('provinceId', opt.value);
-    set('provinceName', opt.text);
-    set('city', '');
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,17 +304,26 @@ export default function TambahUMKM() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">Provinsi</label>
-                  <select value={form.provinceId} onChange={handleProvinceChange} className={inputCls}>
-                    <option value="">Pilih Provinsi</option>
-                    {PROVINCES.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                  </select>
+                  <SearchableSelect
+                    options={PROVINCES}
+                    value={form.provinceName}
+                    onChange={(opt) => {
+                      set('provinceId', opt.id);
+                      set('provinceName', opt.name);
+                      set('city', '');
+                    }}
+                    placeholder="Pilih Provinsi"
+                  />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">Kota / Kabupaten</label>
-                  <select value={form.city} onChange={e => set('city', e.target.value)} disabled={!form.provinceId || loadingCities} className={`${inputCls} disabled:opacity-50`}>
-                    <option value="">{loadingCities ? 'Memuat...' : 'Pilih Kota/Kabupaten'}</option>
-                    {cities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                  </select>
+                  <SearchableSelect
+                    options={cities}
+                    value={form.city}
+                    onChange={(opt) => set('city', opt.name)}
+                    placeholder={loadingCities ? 'Memuat...' : 'Pilih Kota/Kabupaten'}
+                    disabled={!form.provinceId || loadingCities}
+                  />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">No. Telepon</label>
