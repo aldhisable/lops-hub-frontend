@@ -58,7 +58,7 @@ export function PublicHomepage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-6 text-xl text-slate-500 max-w-2xl"
           >
-            Platform intelijen terpadu untuk monitoring, evaluasi, dan akselerasi UMKM binaan Pelindo di seluruh Indonesia.
+            Platform intelijen terpadu untuk monitoring, evaluasi, dan akselerasi UMKM binaan LOPs Hub di seluruh Indonesia.
           </motion.p>
         </section>
 

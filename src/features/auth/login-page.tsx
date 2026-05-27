@@ -34,9 +34,9 @@ export function LoginPage() {
     <AuthLayout>
       <GlassCard className="p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border-white/40 bg-white/70">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">P</div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Pelindo UMKM</h1>
-          <p className="text-slate-500 text-sm mt-2">Intelligence & Growth Platform</p>
+          <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-4"><img src="/logo.png" alt="LOPs Hub" className="w-full h-full object-cover" /></div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">LOPs Hub</h1>
+          <p className="text-slate-500 text-sm mt-2">Local Pride Spot — Intelligence & Growth Platform</p>
         </div>
 
         <form onSubmit={handleLogin} className="flex flex-col gap-5">

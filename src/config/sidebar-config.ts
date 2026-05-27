@@ -5,9 +5,9 @@ import {
 import type { SidebarNavItem } from '@/components/layout/sidebar-nav';
 
 export const brandConfig = {
-  mark: 'P',
-  name: 'Pelindo UMKM',
-  descriptor: 'Intelligence Platform',
+  mark: 'L',
+  name: 'LOPs Hub',
+  descriptor: 'Local Pride Spot',
 };
 
 export const mainNavItems: SidebarNavItem[] = [

@@ -41,8 +41,8 @@ export function SidebarNav({
   return (
     <aside className="w-[280px] bg-white border-r border-slate-100 flex flex-col h-full overflow-y-auto">
       <div className="p-6 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/30">
-          {brand.mark}
+        <div className="w-10 h-10 rounded-full overflow-hidden shadow-lg shadow-blue-500/30 shrink-0">
+          <img src="/logo.png" alt="LOPs Hub" className="w-full h-full object-cover" />
         </div>
         <div>
           <strong className="block text-slate-900 font-bold text-lg leading-tight">{brand.name}</strong>

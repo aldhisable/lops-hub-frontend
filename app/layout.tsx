@@ -11,7 +11,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'LOPs Hub',
-  description: 'Pelindo UMKM Intelligence & Growth Platform',
+  description: 'LOPs Hub — Local Pride Spot Intelligence & Growth Platform',
   icons: { icon: '/favicon.svg' },
 }
 

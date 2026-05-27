@@ -65,7 +65,7 @@ export function DashboardPage() {
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-3xl font-black text-slate-900">Dashboard Nasional</h1>
-          <p className="text-slate-500 mt-1">Monitoring pertumbuhan dan perkembangan UMKM binaan Pelindo</p>
+          <p className="text-slate-500 mt-1">Monitoring pertumbuhan dan perkembangan UMKM binaan LOPs Hub</p>
         </div>
         <div className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium shadow-sm flex items-center gap-2">
           📅 {new Date().getFullYear()}
