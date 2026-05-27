@@ -12,7 +12,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'LOPs Hub',
   description: 'LOPs Hub — Local Pride Spot Intelligence & Growth Platform',
-  icons: { icon: '/favicon.svg' },
+  icons: { icon: '/logo.png' },
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

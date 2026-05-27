@@ -56,11 +56,6 @@ export function TopBar({ searchPlaceholder = "Cari UMKM, wilayah, kategori, prog
           type="search" 
           className="w-full bg-slate-50 border border-slate-200 text-slate-600 rounded-full pl-11 pr-16 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
         />
-        <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] font-medium text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded">
-          <span>Ctrl</span>
-          <span>+</span>
-          <span>K</span>
-        </div>
         </div>
       </div>
       
