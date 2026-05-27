@@ -41,6 +41,7 @@ export const authApi = {
 // UMKM
 export const umkmApi = {
   list: (params?: Record<string, string | number>) => api.get('/umkm', { params }),
+  me: () => api.get('/umkm/me'),
   get: (id: string) => api.get(`/umkm/${id}`),
   create: (data: Record<string, unknown>) => api.post('/umkm', data),
   update: (id: string, data: Record<string, unknown>) => api.put(`/umkm/${id}`, data),

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Save, Loader2, ChevronDown, Search } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, ChevronDown, Search, Eye, EyeOff } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
 import { authApi, umkmApi } from '@/lib/api';
@@ -147,6 +147,7 @@ export default function TambahUMKM() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Wilayah
   const [cities, setCities] = useState<Wilayah[]>([]);
@@ -278,7 +279,22 @@ export default function TambahUMKM() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">Password *</label>
-                  <input type="password" value={form.password} onChange={e => set('password', e.target.value)} placeholder="Min. 6 karakter" className={inputCls} />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={e => set('password', e.target.value)}
+                      placeholder="Min. 6 karakter"
+                      className={`${inputCls} w-full pr-10`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(v => !v)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
               </div>
             </GlassCard>

@@ -1,10 +1,12 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PieChart, TrendingUp, ShoppingBag, Users2, CheckCircle2, Clock, AtSign, Phone, Globe, MapPin, AlignLeft } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
+import { useAuth } from '@/context/auth-context';
+import { umkmApi } from '@/lib/api';
 
 const radarData = [
   { subject: 'Spread', A: 85, fullMark: 100 },
@@ -39,13 +41,42 @@ const programList = [
   { name: 'Gedor Ekspor', period: 'Belum Bergabung', status: 'Belum', color: 'bg-slate-300', badgeColor: 'bg-slate-100 text-slate-500' },
 ];
 
+interface UMKMData {
+  id: string;
+  name: string;
+  category: string;
+  establishedYear?: number | null;
+  city?: string | null;
+  province?: string | null;
+  address?: string | null;
+  phone?: string | null;
+  instagram?: string | null;
+  website?: string | null;
+  description?: string | null;
+  classification: string;
+  status: string;
+  products: { id: string }[];
+  participations: { program: { name: string; startDate: string; endDate: string; status: string } }[];
+}
+
 export default function WorkspaceDashboard() {
+  const { user } = useAuth();
+  const [umkm, setUmkm] = useState<UMKMData | null>(null);
+
+  useEffect(() => {
+    umkmApi.me().then(res => setUmkm(res.data)).catch(() => {});
+  }, []);
+
+  const ownerName = user?.name ?? '—';
+  const umkmName = umkm?.name ?? '—';
+  const classLabel: Record<string, string> = { PLATINUM: '💎 Platinum', GOLD: '🏆 Gold', SILVER: '🥈 Silver', BRONZE: '🥉 Bronze' };
+
   return (
     <>
       {/* Welcome Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-900">Selamat Datang, Siti Aisyah 👋</h1>
-        <p className="text-slate-500 mt-1">Berikut ringkasan usaha <strong className="text-slate-700">Rumah Laut Sejahtera</strong> Anda hari ini</p>
+        <h1 className="text-3xl font-black text-slate-900">Selamat Datang, {ownerName} 👋</h1>
+        <p className="text-slate-500 mt-1">Berikut ringkasan usaha <strong className="text-slate-700">{umkmName}</strong> Anda hari ini</p>
       </div>
 
       {/* Identity Card */}
@@ -56,25 +87,25 @@ export default function WorkspaceDashboard() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2.5 mb-3">
-              <h2 className="text-xl font-bold text-slate-900">Rumah Laut Sejahtera</h2>
+              <h2 className="text-xl font-bold text-slate-900">{umkmName}</h2>
               <CheckCircle2 className="w-5 h-5 text-blue-500 fill-blue-100 shrink-0" />
             </div>
             <div className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-1.5 text-sm mb-4">
-              <span className="text-slate-500">Owner</span><span className="font-medium text-slate-800">Siti Aisyah</span>
-              <span className="text-slate-500">Kategori</span><span className="font-medium text-slate-800">Makanan & Minuman</span>
-              <span className="text-slate-500">Berdiri Sejak</span><span className="font-medium text-slate-800">2021</span>
-              <span className="text-slate-500">Kota / Provinsi</span><span className="font-medium text-slate-800">Makassar, Sulawesi Selatan</span>
+              <span className="text-slate-500">Owner</span><span className="font-medium text-slate-800">{ownerName}</span>
+              <span className="text-slate-500">Kategori</span><span className="font-medium text-slate-800">{umkm?.category ?? '—'}</span>
+              <span className="text-slate-500">Berdiri Sejak</span><span className="font-medium text-slate-800">{umkm?.establishedYear ?? '—'}</span>
+              <span className="text-slate-500">Kota / Provinsi</span><span className="font-medium text-slate-800">{umkm?.city && umkm?.province ? `${umkm.city}, ${umkm.province}` : umkm?.city ?? umkm?.province ?? '—'}</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-600 flex items-center gap-1.5"><Phone className="w-3 h-3" /> 0812-3456-7890</span>
-              <span className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-pink-600 flex items-center gap-1.5"><AtSign className="w-3 h-3" /> @rumahlaut.id</span>
-              <span className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-600 flex items-center gap-1.5"><Globe className="w-3 h-3" /> rumahlaut.id</span>
+              {umkm?.phone && <span className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-600 flex items-center gap-1.5"><Phone className="w-3 h-3" /> {umkm.phone}</span>}
+              {umkm?.instagram && <span className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-pink-600 flex items-center gap-1.5"><AtSign className="w-3 h-3" /> {umkm.instagram}</span>}
+              {umkm?.website && <span className="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-medium text-slate-600 flex items-center gap-1.5"><Globe className="w-3 h-3" /> {umkm.website}</span>}
             </div>
           </div>
           <div className="flex flex-col gap-3 lg:border-l lg:border-slate-100 lg:pl-6 shrink-0 min-w-[140px]">
-            <div><div className="text-xs text-slate-400 mb-1">Status</div><span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-semibold"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Aktif</span></div>
-            <div><div className="text-xs text-slate-400 mb-1">Klasifikasi</div><span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-semibold">🏆 Gold</span></div>
-            <div><div className="text-xs text-slate-400 mb-1">Program Aktif</div><span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">🚀 UMK Akselerator</span></div>
+            <div><div className="text-xs text-slate-400 mb-1">Status</div><span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-semibold"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> {umkm?.status === 'ACTIVE' ? 'Aktif' : umkm?.status ?? '—'}</span></div>
+            <div><div className="text-xs text-slate-400 mb-1">Klasifikasi</div><span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 text-xs font-semibold">{classLabel[umkm?.classification ?? ''] ?? umkm?.classification ?? '—'}</span></div>
+            <div><div className="text-xs text-slate-400 mb-1">Program Diikuti</div><span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 text-xs font-semibold">{umkm?.participations?.length ?? 0} program</span></div>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:border-l lg:border-slate-100 lg:pl-6 shrink-0">
             {[

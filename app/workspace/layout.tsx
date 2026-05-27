@@ -6,9 +6,11 @@ import { InternalLayout } from '@/components/layout/internal-layout';
 import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { TopBar } from '@/components/layout/top-bar';
 import { umkmBrandConfig, umkmMainNavItems, umkmSupportNavItems } from '@/config/workspace-sidebar-config';
+import { useAuth } from '@/context/auth-context';
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const sidebar = (
     <SidebarNav
@@ -20,7 +22,7 @@ export default function WorkspaceLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <InternalLayout sidebar={sidebar} topbar={<TopBar userName="Siti Aisyah" userRole="UMK Binaan" />}>
+    <InternalLayout sidebar={sidebar} topbar={<TopBar userName={user?.name ?? 'UMKM'} userRole="UMK Binaan" />}>
       {children}
     </InternalLayout>
   );
