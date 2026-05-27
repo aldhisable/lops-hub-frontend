@@ -10,6 +10,47 @@ import { useRouter } from 'next/navigation';
 
 interface Wilayah { id: string; name: string; }
 
+const PROVINCES: Wilayah[] = [
+  { id: '11', name: 'Aceh' },
+  { id: '12', name: 'Sumatera Utara' },
+  { id: '13', name: 'Sumatera Barat' },
+  { id: '14', name: 'Riau' },
+  { id: '15', name: 'Jambi' },
+  { id: '16', name: 'Sumatera Selatan' },
+  { id: '17', name: 'Bengkulu' },
+  { id: '18', name: 'Lampung' },
+  { id: '19', name: 'Kepulauan Bangka Belitung' },
+  { id: '21', name: 'Kepulauan Riau' },
+  { id: '31', name: 'DKI Jakarta' },
+  { id: '32', name: 'Jawa Barat' },
+  { id: '33', name: 'Jawa Tengah' },
+  { id: '34', name: 'DI Yogyakarta' },
+  { id: '35', name: 'Jawa Timur' },
+  { id: '36', name: 'Banten' },
+  { id: '51', name: 'Bali' },
+  { id: '52', name: 'Nusa Tenggara Barat' },
+  { id: '53', name: 'Nusa Tenggara Timur' },
+  { id: '61', name: 'Kalimantan Barat' },
+  { id: '62', name: 'Kalimantan Tengah' },
+  { id: '63', name: 'Kalimantan Selatan' },
+  { id: '64', name: 'Kalimantan Timur' },
+  { id: '65', name: 'Kalimantan Utara' },
+  { id: '71', name: 'Sulawesi Utara' },
+  { id: '72', name: 'Sulawesi Tengah' },
+  { id: '73', name: 'Sulawesi Selatan' },
+  { id: '74', name: 'Sulawesi Tenggara' },
+  { id: '75', name: 'Gorontalo' },
+  { id: '76', name: 'Sulawesi Barat' },
+  { id: '81', name: 'Maluku' },
+  { id: '82', name: 'Maluku Utara' },
+  { id: '91', name: 'Papua Barat' },
+  { id: '92', name: 'Papua Barat Daya' },
+  { id: '94', name: 'Papua' },
+  { id: '95', name: 'Papua Selatan' },
+  { id: '96', name: 'Papua Tengah' },
+  { id: '97', name: 'Papua Pegunungan' },
+];
+
 const KATEGORI = [
   'Makanan & Minuman', 'Fashion & Tekstil', 'Kerajinan & Souvenir',
   'Agrikultur & Perkebunan', 'Perikanan & Kelautan', 'Teknologi & Digital',
@@ -25,9 +66,7 @@ export default function TambahUMKM() {
   const [success, setSuccess] = useState(false);
 
   // Wilayah
-  const [provinces, setProvinces] = useState<Wilayah[]>([]);
   const [cities, setCities] = useState<Wilayah[]>([]);
-  const [selectedProvince, setSelectedProvince] = useState('');
   const [loadingCities, setLoadingCities] = useState(false);
 
   // Form fields
@@ -42,19 +81,21 @@ export default function TambahUMKM() {
   });
 
   useEffect(() => {
-    fetch('https://emsifa.github.io/api-wilayah-indonesia/api/provinces.json')
-      .then(r => r.json())
-      .then((data: Wilayah[]) => setProvinces(data))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
     if (!form.provinceId) { setCities([]); return; }
     setLoadingCities(true);
-    fetch(`https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${form.provinceId}.json`)
-      .then(r => r.json())
+    const emsifa = `https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${form.provinceId}.json`;
+    const ibnux = `https://ibnux.github.io/data-indonesia/kabupaten/${form.provinceId}.json`;
+    fetch(emsifa)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then((data: Wilayah[]) => setCities(data))
-      .catch(() => setCities([]))
+      .catch(() =>
+        fetch(ibnux)
+          .then(r => r.json())
+          .then((data: { id: string; nama: string }[]) =>
+            setCities(data.map(d => ({ id: d.id, name: d.nama })))
+          )
+          .catch(() => setCities([]))
+      )
       .finally(() => setLoadingCities(false));
   }, [form.provinceId]);
 
@@ -189,7 +230,7 @@ export default function TambahUMKM() {
                   <label className="text-sm font-medium text-slate-700">Provinsi</label>
                   <select value={form.provinceId} onChange={handleProvinceChange} className={inputCls}>
                     <option value="">Pilih Provinsi</option>
-                    {provinces.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {PROVINCES.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div className="flex flex-col gap-2">
