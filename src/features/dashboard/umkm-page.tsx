@@ -169,7 +169,7 @@ export function UMKMDirectoryPage() {
 
   const fetchData = useCallback(() => {
     setLoading(true);
-    const params: Record<string, string | number> = { page, limit: 20 };
+    const params: Record<string, string | number> = { page, limit: 20, status: 'ACTIVE' };
     if (search) params.search = search;
     const cls = filterToApi[activeFilter];
     if (cls) params.classification = cls;
