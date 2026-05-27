@@ -70,7 +70,7 @@ export default function TambahProduk() {
   const handleSubmit = async (isActive: boolean) => {
     setError('');
     if (!form.name.trim()) { setError('Nama produk wajib diisi.'); return; }
-    if (!form.category) { setError('Kategori wajib dipilih.'); return; }
+    if (!form.category) { setError('Jenis produk wajib dipilih.'); return; }
     if (!form.price || parseFloat(form.price) <= 0) { setError('Harga wajib diisi dan harus lebih dari 0.'); return; }
     if (!umkm) { setError('Data UMKM belum dimuat, coba refresh.'); return; }
 
@@ -126,9 +126,9 @@ export default function TambahProduk() {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-slate-700">Kategori *</label>
+                  <label className="text-sm font-medium text-slate-700">Jenis Produk *</label>
                   <select value={form.category} onChange={e => set('category', e.target.value)} className={inputCls}>
-                    <option value="">Pilih Kategori</option>
+                    <option value="">Pilih Jenis Produk</option>
                     {subCategories.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
