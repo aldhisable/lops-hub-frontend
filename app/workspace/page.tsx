@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { PieChart, TrendingUp, ShoppingBag, Users2, CheckCircle2, Clock, AtSign, Phone, Globe, MapPin, AlignLeft } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { useAuth } from '@/context/auth-context';
-import { umkmApi } from '@/lib/api';
+import { useWorkspace } from '@/context/workspace-context';
 
 const radarData = [
   { subject: 'Spread', A: 85, fullMark: 100 },
@@ -41,31 +41,9 @@ const programList = [
   { name: 'Gedor Ekspor', period: 'Belum Bergabung', status: 'Belum', color: 'bg-slate-300', badgeColor: 'bg-slate-100 text-slate-500' },
 ];
 
-interface UMKMData {
-  id: string;
-  name: string;
-  category: string;
-  establishedYear?: number | null;
-  city?: string | null;
-  province?: string | null;
-  address?: string | null;
-  phone?: string | null;
-  instagram?: string | null;
-  website?: string | null;
-  description?: string | null;
-  classification: string;
-  status: string;
-  products: { id: string }[];
-  participations: { program: { name: string; startDate: string; endDate: string; status: string } }[];
-}
-
 export default function WorkspaceDashboard() {
   const { user } = useAuth();
-  const [umkm, setUmkm] = useState<UMKMData | null>(null);
-
-  useEffect(() => {
-    umkmApi.me().then(res => setUmkm(res.data)).catch(() => {});
-  }, []);
+  const { umkm } = useWorkspace();
 
   const ownerName = user?.name ?? '—';
   const umkmName = umkm?.name ?? '—';
