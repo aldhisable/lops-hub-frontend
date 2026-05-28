@@ -6,14 +6,9 @@ import { KPICard } from '@/components/ui/kpi-card';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlassCard } from '@/components/ui/glass-card';
 import { analyticsApi } from '@/lib/api';
+import { formatCompactRupiah } from '@/lib/currency';
 
 const MONTHS_ID = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-
-function formatRevenue(val: number): string {
-  if (val >= 1_000_000) return `Rp ${(val / 1_000_000).toFixed(2)} T`;
-  if (val >= 1_000) return `Rp ${(val / 1_000).toFixed(1)} M`;
-  return `Rp ${val.toLocaleString('id-ID')}`;
-}
 
 interface DashboardStats {
   totalUMKM: number;
@@ -46,7 +41,7 @@ export function DashboardPage() {
 
   const trendChartData = trend.map((t) => ({
     month: MONTHS_ID[t.month] ?? String(t.month),
-    revenue: parseFloat((t.revenue / 1000).toFixed(2)),
+    revenue: t.revenue,
   }));
 
   const getClassCount = (cls: string) =>
@@ -84,7 +79,7 @@ export function DashboardPage() {
         />
         <KPICard
           title="Total Omzet (Penjualan)"
-          value={loading ? '—' : formatRevenue(stats?.totalRevenue ?? 0)}
+          value={loading ? '—' : formatCompactRupiah(stats?.totalRevenue ?? 0)}
           icon={PieChart}
           iconBgClass="bg-blue-50"
           iconColorClass="text-blue-600"
@@ -164,13 +159,13 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 mb-8">
         <AnalyticsChart
           title="Tren Omzet (Penjualan)"
-          subtitle="Total omzet UMKM (dalam Juta Rupiah)"
+          subtitle="Total omzet UMKM (Rupiah)"
           data={trendChartData.length > 0 ? trendChartData : [{ month: '—', revenue: 0 }]}
           dataKey="revenue"
           xAxisKey="month"
           height={300}
           color="#3b82f6"
-          valueFormatter={(val) => `Rp ${val.toLocaleString('id-ID')} Jt`}
+          valueFormatter={formatCompactRupiah}
         />
       </div>
 

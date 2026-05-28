@@ -12,6 +12,7 @@ import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
 import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile } from '@/lib/api';
+import { formatCompactRupiah, formatRupiah } from '@/lib/currency';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
 
@@ -281,7 +282,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 lg:border-l lg:border-slate-100 lg:pl-6 shrink-0">
             {[
-              { icon: PieChart, label: `Omzet ${new Date().getFullYear()}`, value: `Rp ${totalRevenue.toLocaleString('id-ID')} Jt`, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { icon: PieChart, label: `Omzet ${new Date().getFullYear()}`, value: formatCompactRupiah(totalRevenue), color: 'text-blue-600', bg: 'bg-blue-50' },
               { icon: ShoppingBag, label: 'Jumlah Produk', value: umkm.products.length.toString(), color: 'text-indigo-600', bg: 'bg-indigo-50' },
               { icon: TrendingUp, label: 'Program Diikuti', value: umkm.participations.length.toString(), color: 'text-purple-600', bg: 'bg-purple-50' },
             ].map((kpi) => (
@@ -358,13 +359,13 @@ export function UMKMProfilePage({ id }: { id?: string }) {
           {revenueTrendData.length > 0 && (
             <AnalyticsChart
               title="Tren Omzet (Penjualan)"
-              subtitle={`Total omzet ${new Date().getFullYear()} (Juta Rupiah)`}
+              subtitle={`Total omzet ${new Date().getFullYear()} (Rupiah)`}
               data={revenueTrendData}
               dataKey="revenue"
               xAxisKey="month"
               height={250}
               color="#8b5cf6"
-              valueFormatter={(val) => `Rp ${val} Jt`}
+              valueFormatter={formatCompactRupiah}
             />
           )}
         </>
@@ -480,12 +481,12 @@ export function UMKMProfilePage({ id }: { id?: string }) {
             <div className="grid grid-cols-2 gap-4">
               <GlassCard className="p-5">
                 <div className="text-xs text-slate-500 mb-1">Penjualan Gerai LOPs {currentYear}</div>
-                <div className="text-xl font-bold text-teal-700">Rp {totalLops.toLocaleString('id-ID')} Jt</div>
+                <div className="text-xl font-bold text-teal-700">{formatCompactRupiah(totalLops)}</div>
                 <div className="text-xs text-slate-400 mt-1">Diinput oleh admin</div>
               </GlassCard>
               <GlassCard className="p-5">
                 <div className="text-xs text-slate-500 mb-1">Omzet Umum {currentYear}</div>
-                <div className="text-xl font-bold text-purple-700">Rp {totalFin.toLocaleString('id-ID')} Jt</div>
+                <div className="text-xl font-bold text-purple-700">{formatCompactRupiah(totalFin)}</div>
                 <div className="text-xs text-slate-400 mt-1">Self-report oleh UMKM</div>
               </GlassCard>
             </div>
@@ -500,7 +501,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                 xAxisKey="month"
                 height={250}
                 color="#0d9488"
-                valueFormatter={(val) => `Rp ${val} Jt`}
+                valueFormatter={formatCompactRupiah}
               />
             ) : (
               <GlassCard className="p-8 text-center text-slate-400 text-sm">
@@ -531,8 +532,8 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                     </div>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-slate-600 mb-1 block">Nilai Penjualan (Juta Rupiah)</label>
-                    <input type="number" min="0" step="0.1" placeholder="Contoh: 85" value={lopsAmount}
+                    <label className="text-xs font-medium text-slate-600 mb-1 block">Nilai Penjualan (Rupiah)</label>
+                    <input type="number" min="0" step="1" placeholder="Contoh: 85000000" value={lopsAmount}
                       onChange={e => setLopsAmount(e.target.value)} required
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-300" />
                   </div>
@@ -576,7 +577,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                           {l.gerai && <span className="text-xs text-slate-400 ml-2">— {l.gerai}</span>}
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-bold text-teal-700">Rp {l.amount.toLocaleString('id-ID')} Jt</span>
+                          <span className="text-sm font-bold text-teal-700">{formatRupiah(l.amount)}</span>
                           {isAdmin && (
                             <button onClick={() => handleDeleteLops(l.month, l.year)}
                               className="text-xs text-red-400 hover:text-red-600 transition-colors px-2 py-1 rounded hover:bg-red-50">
@@ -600,8 +601,8 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                       <div key={`${f.month}-${f.year}`} className="flex justify-between items-center py-2.5">
                         <span className="text-sm text-slate-600">{MONTHS_ID[f.month]}</span>
                         <div className="text-right">
-                          <div className="text-sm font-bold text-slate-900">Rp {f.revenue.toLocaleString('id-ID')} Jt</div>
-                          {f.profit != null && <div className="text-xs text-emerald-600">Profit: Rp {f.profit.toFixed(0)} Jt</div>}
+                          <div className="text-sm font-bold text-slate-900">{formatRupiah(f.revenue)}</div>
+                          {f.profit != null && <div className="text-xs text-emerald-600">Profit: {formatRupiah(f.profit)}</div>}
                         </div>
                       </div>
                     ))}

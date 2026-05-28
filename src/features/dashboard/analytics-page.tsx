@@ -6,6 +6,7 @@ import { KPICard } from '@/components/ui/kpi-card';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlassCard } from '@/components/ui/glass-card';
 import { analyticsApi } from '@/lib/api';
+import { formatCompactRupiah } from '@/lib/currency';
 
 const MONTHS_ID = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
 
@@ -34,14 +35,13 @@ export function AnalyticsPage() {
 
   const trendChartData = trend.map((t) => ({
     month: MONTHS_ID[t.month] ?? String(t.month),
-    revenue: parseFloat((t.revenue / 1000).toFixed(2)),
+    revenue: t.revenue,
   }));
 
   const getCount = (cls: string) =>
     stats?.classificationDist.find((d) => d.classification === cls)?._count.id ?? 0;
 
   const platinumGold = getCount('PLATINUM') + getCount('GOLD');
-  const totalRevBillion = stats ? (stats.totalRevenue / 1_000_000).toFixed(2) : '0';
 
   return (
     <>
@@ -55,7 +55,7 @@ export function AnalyticsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <KPICard
           title="Total Omzet Nasional"
-          value={loading ? '—' : `Rp ${totalRevBillion} M`}
+          value={loading ? '—' : formatCompactRupiah(stats?.totalRevenue ?? 0)}
           icon={DollarSign}
           iconBgClass="bg-blue-50"
           iconColorClass="text-blue-600"
@@ -86,13 +86,13 @@ export function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <AnalyticsChart
           title="Tren Omzet Nasional"
-          subtitle="Total omzet UMKM (dalam Juta Rupiah)"
+          subtitle="Total omzet UMKM (Rupiah)"
           data={trendChartData.length > 0 ? trendChartData : [{ month: '—', revenue: 0 }]}
           dataKey="revenue"
           xAxisKey="month"
           color="#8b5cf6"
           height={350}
-          valueFormatter={(val) => `Rp ${val.toLocaleString('id-ID')} Jt`}
+          valueFormatter={formatCompactRupiah}
         />
         <GlassCard className="p-6">
           <h3 className="font-semibold text-lg text-slate-900 mb-6">Distribusi Klasifikasi</h3>

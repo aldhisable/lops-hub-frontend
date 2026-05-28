@@ -7,6 +7,7 @@ import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { useAuth } from '@/context/auth-context';
 import { useWorkspace } from '@/context/workspace-context';
+import { formatCompactRupiah } from '@/lib/currency';
 
 const radarData = [
   { subject: 'Spread', A: 85, fullMark: 100 },
@@ -17,12 +18,12 @@ const radarData = [
 ];
 
 const revenueTrendData = [
-  { month: 'Jan', revenue: 150 }, { month: 'Feb', revenue: 200 },
-  { month: 'Mar', revenue: 180 }, { month: 'Apr', revenue: 250 },
-  { month: 'Mei', revenue: 300 }, { month: 'Jun', revenue: 280 },
-  { month: 'Jul', revenue: 350 }, { month: 'Agu', revenue: 380 },
-  { month: 'Sep', revenue: 400 }, { month: 'Okt', revenue: 420 },
-  { month: 'Nov', revenue: 460 }, { month: 'Des', revenue: 502 },
+  { month: 'Jan', revenue: 150_000_000 }, { month: 'Feb', revenue: 200_000_000 },
+  { month: 'Mar', revenue: 180_000_000 }, { month: 'Apr', revenue: 250_000_000 },
+  { month: 'Mei', revenue: 300_000_000 }, { month: 'Jun', revenue: 280_000_000 },
+  { month: 'Jul', revenue: 350_000_000 }, { month: 'Agu', revenue: 380_000_000 },
+  { month: 'Sep', revenue: 400_000_000 }, { month: 'Okt', revenue: 420_000_000 },
+  { month: 'Nov', revenue: 460_000_000 }, { month: 'Des', revenue: 502_000_000 },
 ];
 
 const targetVsActualData = [
@@ -87,7 +88,7 @@ export default function WorkspaceDashboard() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:border-l lg:border-slate-100 lg:pl-6 shrink-0">
             {[
-              { icon: PieChart, label: 'Omzet (2025)', value: 'Rp 502 Jt', trend: '↑ 18,6%', color: 'text-blue-600', bg: 'bg-blue-50' },
+              { icon: PieChart, label: 'Omzet (2025)', value: formatCompactRupiah(502_000_000), trend: '↑ 18,6%', color: 'text-blue-600', bg: 'bg-blue-50' },
               { icon: TrendingUp, label: 'Growth', value: '23,8%', trend: '↑ 6,1%', color: 'text-purple-600', bg: 'bg-purple-50' },
               { icon: ShoppingBag, label: 'Jumlah Produk', value: '24', trend: '↑ 5', color: 'text-indigo-600', bg: 'bg-indigo-50' },
               { icon: Users2, label: 'Tenaga Kerja', value: '18', trend: '↑ 3', color: 'text-teal-600', bg: 'bg-teal-50' },
@@ -131,7 +132,7 @@ export default function WorkspaceDashboard() {
 
       {/* Row 2: Tren Omzet | Target vs Aktual | Informasi Program */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <AnalyticsChart title="Tren Omzet (Penjualan)" data={revenueTrendData} dataKey="revenue" xAxisKey="month" height={250} color="#8b5cf6" valueFormatter={(val) => `Rp ${val} Jt`} />
+        <AnalyticsChart title="Tren Omzet (Penjualan)" data={revenueTrendData} dataKey="revenue" xAxisKey="month" height={250} color="#8b5cf6" valueFormatter={formatCompactRupiah} />
 
         <GlassCard className="p-6">
           <h3 className="font-semibold text-lg text-slate-900 mb-4">Perbandingan Target vs Aktual (2025)</h3>

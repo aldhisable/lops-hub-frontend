@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlassCard } from '@/components/ui/glass-card';
 import { financialApi, lopsSalesApi, umkmApi } from '@/lib/api';
+import { formatCompactRupiah, formatRupiah } from '@/lib/currency';
 
 const MONTHS_ID = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 const CURRENT_YEAR = new Date().getFullYear();
@@ -102,7 +103,7 @@ export default function OmzetPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <GlassCard className="p-5">
           <div className="text-xs text-slate-500 mb-1">Omzet Bulan Ini</div>
-          <div className="text-2xl font-bold text-slate-900">Rp {omzetBulanIni.toLocaleString('id-ID')} Jt</div>
+          <div className="text-2xl font-bold text-slate-900">{formatCompactRupiah(omzetBulanIni)}</div>
           {growthPct !== null && (
             <div className={`text-xs font-semibold mt-1 ${parseFloat(growthPct) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
               {parseFloat(growthPct) >= 0 ? '↑' : '↓'} {Math.abs(parseFloat(growthPct))}% vs bulan lalu
@@ -111,13 +112,13 @@ export default function OmzetPage() {
         </GlassCard>
         <GlassCard className="p-5">
           <div className="text-xs text-slate-500 mb-1">Omzet Tahun {CURRENT_YEAR}</div>
-          <div className="text-2xl font-bold text-slate-900">Rp {omzetTahunIni.toLocaleString('id-ID')} Jt</div>
+          <div className="text-2xl font-bold text-slate-900">{formatCompactRupiah(omzetTahunIni)}</div>
           <div className="text-xs text-slate-400 mt-1">{thisYearFinancials.length} bulan dilaporkan</div>
         </GlassCard>
         <GlassCard className="p-5 col-span-2 md:col-span-1">
           <div className="text-xs text-slate-500 mb-1">Penjualan di Gerai LOPs ({CURRENT_YEAR})</div>
           <div className="text-2xl font-bold text-slate-900">
-            Rp {lopsSales.reduce((s, l) => s + l.amount, 0).toLocaleString('id-ID')} Jt
+            {formatCompactRupiah(lopsSales.reduce((s, l) => s + l.amount, 0))}
           </div>
           <div className="text-xs text-slate-400 mt-1">Diinput oleh admin LOPs</div>
         </GlassCard>
@@ -133,7 +134,7 @@ export default function OmzetPage() {
             xAxisKey="month"
             height={300}
             color="#8b5cf6"
-            valueFormatter={(v) => `Rp ${v} Jt`}
+            valueFormatter={formatCompactRupiah}
           />
         </div>
       ) : (
@@ -175,12 +176,12 @@ export default function OmzetPage() {
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1 block">Omzet (Juta Rupiah)</label>
+              <label className="text-xs font-medium text-slate-600 mb-1 block">Omzet (Rupiah)</label>
               <input
                 type="number"
                 min="0"
-                step="0.1"
-                placeholder="Contoh: 150"
+                step="1"
+                placeholder="Contoh: 150000000"
                 value={formRevenue}
                 onChange={e => setFormRevenue(e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-300"
@@ -188,12 +189,12 @@ export default function OmzetPage() {
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 mb-1 block">Profit Bersih (Juta Rupiah) — opsional</label>
+              <label className="text-xs font-medium text-slate-600 mb-1 block">Profit Bersih (Rupiah) — opsional</label>
               <input
                 type="number"
                 min="0"
-                step="0.1"
-                placeholder="Contoh: 30"
+                step="1"
+                placeholder="Contoh: 30000000"
                 value={formProfit}
                 onChange={e => setFormProfit(e.target.value)}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-300"
@@ -225,9 +226,9 @@ export default function OmzetPage() {
                 <div key={`${f.month}-${f.year}`} className="flex justify-between items-center py-3">
                   <span className="text-sm text-slate-600 font-medium">{MONTHS_ID[f.month]} {f.year}</span>
                   <div className="text-right">
-                    <div className="text-sm font-bold text-slate-900">Rp {f.revenue.toLocaleString('id-ID')} Jt</div>
+                    <div className="text-sm font-bold text-slate-900">{formatRupiah(f.revenue)}</div>
                     {f.profit != null && (
-                      <div className="text-xs text-emerald-600">Profit: Rp {f.profit.toLocaleString('id-ID')} Jt</div>
+                      <div className="text-xs text-emerald-600">Profit: {formatRupiah(f.profit)}</div>
                     )}
                   </div>
                 </div>
@@ -250,7 +251,7 @@ export default function OmzetPage() {
                   {l.gerai && <span className="text-xs text-slate-400 ml-2">— {l.gerai}</span>}
                   {l.notes && <p className="text-xs text-slate-400 mt-0.5">{l.notes}</p>}
                 </div>
-                <div className="text-sm font-bold text-teal-700">Rp {l.amount.toLocaleString('id-ID')} Jt</div>
+                <div className="text-sm font-bold text-teal-700">{formatRupiah(l.amount)}</div>
               </div>
             ))}
           </div>
