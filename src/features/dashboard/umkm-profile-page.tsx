@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  PieChart, FileText,
+  PieChart, FileText, Eye,
   ArrowLeft, CheckCircle2, Phone, AtSign,
   Globe, ShoppingBag, TrendingUp,
   AlignLeft, ChevronRight, Edit3, Clock, MapPin
@@ -11,7 +11,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
-import { umkmApi, lopsSalesApi, financialApi } from '@/lib/api';
+import { umkmApi, lopsSalesApi, documentsApi } from '@/lib/api';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
 
@@ -48,6 +48,15 @@ const PROG_STATUS_BADGE: Record<string, string> = {
   DROPPED: 'bg-red-50 text-red-700',
 };
 
+const DOC_STATUS_STYLE: Record<string, string> = {
+  PENDING: 'bg-amber-50 text-amber-700',
+  VERIFIED: 'bg-emerald-50 text-emerald-700',
+  REJECTED: 'bg-red-50 text-red-600',
+};
+const DOC_STATUS_LABEL: Record<string, string> = {
+  PENDING: 'Menunggu', VERIFIED: 'Terverifikasi', REJECTED: 'Ditolak',
+};
+
 interface UMKMData {
   id: string;
   name: string;
@@ -70,6 +79,7 @@ interface UMKMData {
     program: { id: string; name: string; startDate: string; endDate: string; status: string };
   }>;
   financials: Array<{ month: number; year: number; revenue: number; profit: number | null }>;
+  documents: Array<{ id: string; name: string; type: string; fileUrl: string; fileType: string; status: string; uploadedAt: string }>;
 }
 
 interface LopsSalesEntry { month: number; year: number; amount: number; gerai: string | null; notes: string | null }
@@ -144,6 +154,18 @@ export function UMKMProfilePage({ id }: { id?: string }) {
     try {
       await lopsSalesApi.delete(id, month, year);
       setLopsSales(prev => prev.filter(l => !(l.month === month && l.year === year)));
+    } catch {
+      // silently fail
+    }
+  }
+
+  async function handleVerifyDoc(docId: string, status: 'VERIFIED' | 'REJECTED') {
+    try {
+      await documentsApi.updateStatus(docId, status);
+      setUmkm(prev => prev ? {
+        ...prev,
+        documents: prev.documents.map(d => d.id === docId ? { ...d, status } : d),
+      } : null);
     } catch {
       // silently fail
     }
@@ -389,16 +411,40 @@ export function UMKMProfilePage({ id }: { id?: string }) {
       {/* Documents Tab */}
       {activeTab === 'Documents' && (
         <div className="flex flex-col gap-4">
-          {[
-            { name: 'NIB (Nomor Induk Berusaha)', date: '—', status: 'Terverifikasi', icon: '📋' },
-            { name: 'NPWP Usaha', date: '—', status: 'Terverifikasi', icon: '📄' },
-            { name: 'Laporan Keuangan', date: '—', status: 'Menunggu', icon: '📊' },
-          ].map((doc, i) => (
-            <GlassCard key={i} className="p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-2xl border border-slate-100">{doc.icon}</div>
-              <div className="flex-1"><h4 className="text-sm font-bold text-slate-900">{doc.name}</h4><p className="text-xs text-slate-400 mt-0.5">Diupload: {doc.date}</p></div>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${doc.status === 'Terverifikasi' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>{doc.status}</span>
-              <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><FileText className="w-4 h-4" /></button>
+          {umkm.documents.length === 0 ? (
+            <GlassCard className="p-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+              <FileText className="w-10 h-10 text-slate-300" />
+              <p className="text-sm">Belum ada dokumen yang diupload oleh UMKM ini.</p>
+            </GlassCard>
+          ) : umkm.documents.map((doc) => (
+            <GlassCard key={doc.id} className="p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shrink-0">
+                <FileText className={`w-5 h-5 ${doc.fileType === 'PDF' ? 'text-red-500' : 'text-blue-500'}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold text-slate-900 truncate">{doc.name}</h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {doc.type} • {doc.fileType} • {new Date(doc.uploadedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                </p>
+              </div>
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${DOC_STATUS_STYLE[doc.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                {DOC_STATUS_LABEL[doc.status] ?? doc.status}
+              </span>
+              <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors shrink-0">
+                <Eye className="w-4 h-4" />
+              </a>
+              {isAdmin && doc.status !== 'VERIFIED' && (
+                <button onClick={() => handleVerifyDoc(doc.id, 'VERIFIED')}
+                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg transition-colors shrink-0">
+                  Verifikasi
+                </button>
+              )}
+              {isAdmin && doc.status !== 'REJECTED' && (
+                <button onClick={() => handleVerifyDoc(doc.id, 'REJECTED')}
+                  className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition-colors shrink-0">
+                  Tolak
+                </button>
+              )}
             </GlassCard>
           ))}
         </div>

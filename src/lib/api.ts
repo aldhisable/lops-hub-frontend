@@ -92,6 +92,7 @@ export const documentsApi = {
   }>('/documents/cloudinary-sign'),
   create: (data: { name: string; type: string; fileUrl: string; publicId?: string; fileType: string }) =>
     api.post('/documents', data),
+  updateStatus: (id: string, status: string) => api.patch(`/documents/${id}/status`, { status }),
   delete: (id: string) => api.delete(`/documents/${id}`),
 };
 
