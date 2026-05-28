@@ -87,9 +87,11 @@ export const programsApi = {
 // Documents
 export const documentsApi = {
   list: () => api.get('/documents'),
-  upload: (formData: FormData) => api.post('/documents', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  }),
+  getCloudinarySign: () => api.get<{
+    timestamp: number; signature: string; apiKey: string; cloudName: string; folder: string;
+  }>('/documents/cloudinary-sign'),
+  create: (data: { name: string; type: string; fileUrl: string; publicId?: string; fileType: string }) =>
+    api.post('/documents', data),
   delete: (id: string) => api.delete(`/documents/${id}`),
 };
 

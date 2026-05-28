@@ -47,14 +47,33 @@ function UploadModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
 
     setUploading(true);
     try {
+      const { data: sign } = await documentsApi.getCloudinarySign();
+
       const fd = new FormData();
-      fd.append('name', docName.trim());
-      fd.append('type', docType);
       fd.append('file', file);
-      await documentsApi.upload(fd);
+      fd.append('api_key', sign.apiKey);
+      fd.append('timestamp', String(sign.timestamp));
+      fd.append('signature', sign.signature);
+      fd.append('folder', sign.folder);
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${sign.cloudName}/auto/upload`,
+        { method: 'POST', body: fd }
+      );
+      const uploaded = await res.json();
+      if (!res.ok) throw new Error(uploaded.error?.message ?? 'Upload ke Cloudinary gagal');
+
+      const fileType = file.type === 'application/pdf' ? 'PDF' : 'Gambar';
+      await documentsApi.create({
+        name: docName.trim(),
+        type: docType,
+        fileUrl: uploaded.secure_url,
+        publicId: uploaded.public_id,
+        fileType,
+      });
       onSuccess();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Gagal mengupload. Coba lagi.');
+      setError(err.response?.data?.error || err.message || 'Gagal mengupload. Coba lagi.');
     } finally {
       setUploading(false);
     }
