@@ -5,6 +5,13 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
 import { documentsApi } from '@/lib/api';
 
+function toRawUrl(url: string): string {
+  if (url.includes('/image/upload/') && /\.(pdf|PDF)$/.test(url)) {
+    return url.replace('/image/upload/', '/raw/upload/');
+  }
+  return url;
+}
+
 interface Document {
   id: string;
   name: string;
@@ -57,7 +64,7 @@ function UploadModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (
       fd.append('folder', sign.folder);
 
       const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${sign.cloudName}/auto/upload`,
+        `https://api.cloudinary.com/v1_1/${sign.cloudName}/raw/upload`,
         { method: 'POST', body: fd }
       );
       const uploaded = await res.json();
@@ -235,10 +242,10 @@ export default function DokumenPage() {
               <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${STATUS_STYLE[doc.status] ?? 'bg-slate-100 text-slate-600'}`}>
                 {STATUS_LABEL[doc.status] ?? doc.status}
               </span>
-              <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors">
+              <a href={toRawUrl(doc.fileUrl)} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors">
                 <Eye className="w-4 h-4" />
               </a>
-              <a href={doc.fileUrl} download className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors">
+              <a href={toRawUrl(doc.fileUrl)} download className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors">
                 <Download className="w-4 h-4" />
               </a>
               <button onClick={() => setDeleteId(doc.id)} className="p-2 text-slate-400 hover:text-red-500 rounded-lg transition-colors">

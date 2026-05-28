@@ -48,6 +48,13 @@ const PROG_STATUS_BADGE: Record<string, string> = {
   DROPPED: 'bg-red-50 text-red-700',
 };
 
+function toRawUrl(url: string): string {
+  if (url.includes('/image/upload/') && /\.(pdf|PDF)$/.test(url)) {
+    return url.replace('/image/upload/', '/raw/upload/');
+  }
+  return url;
+}
+
 const DOC_STATUS_STYLE: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700',
   VERIFIED: 'bg-emerald-50 text-emerald-700',
@@ -430,7 +437,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
               <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${DOC_STATUS_STYLE[doc.status] ?? 'bg-slate-100 text-slate-600'}`}>
                 {DOC_STATUS_LABEL[doc.status] ?? doc.status}
               </span>
-              <a href={doc.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors shrink-0">
+              <a href={toRawUrl(doc.fileUrl)} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors shrink-0">
                 <Eye className="w-4 h-4" />
               </a>
               {isAdmin && doc.status !== 'VERIFIED' && (
