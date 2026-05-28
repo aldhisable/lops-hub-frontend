@@ -92,9 +92,51 @@ export const documentsApi = {
   }>('/documents/cloudinary-sign'),
   create: (data: { name: string; type: string; fileUrl: string; publicId?: string; fileType: string }) =>
     api.post('/documents', data),
+  file: (id: string, download = false) =>
+    api.get<Blob>(`/documents/${id}/file`, {
+      params: download ? { download: '1' } : undefined,
+      responseType: 'blob',
+    }),
   updateStatus: (id: string, status: string) => api.patch(`/documents/${id}/status`, { status }),
   delete: (id: string) => api.delete(`/documents/${id}`),
 };
+
+export async function openDocumentFile(
+  doc: { id: string; name: string; fileType?: string },
+  download = false
+): Promise<void> {
+  const popup = !download && typeof window !== 'undefined' ? window.open('', '_blank') : null;
+
+  try {
+    const res = await documentsApi.file(doc.id, download);
+    const contentType = typeof res.headers['content-type'] === 'string'
+      ? res.headers['content-type']
+      : 'application/octet-stream';
+    const blob = res.data instanceof Blob
+      ? res.data
+      : new Blob([res.data], { type: contentType });
+    const objectUrl = URL.createObjectURL(blob);
+
+    if (download) {
+      const ext = doc.fileType?.toLowerCase() === 'pdf' && !doc.name.toLowerCase().endsWith('.pdf') ? '.pdf' : '';
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = `${doc.name}${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } else if (popup) {
+      popup.location.href = objectUrl;
+    } else {
+      window.open(objectUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+  } catch (err) {
+    popup?.close();
+    throw err;
+  }
+}
 
 // LOPs Sales (penjualan konsinyasi gerai)
 export const lopsSalesApi = {

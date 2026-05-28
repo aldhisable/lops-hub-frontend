@@ -11,7 +11,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
-import { umkmApi, lopsSalesApi, documentsApi } from '@/lib/api';
+import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile } from '@/lib/api';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
 
@@ -47,13 +47,6 @@ const PROG_STATUS_BADGE: Record<string, string> = {
   GRADUATED: 'bg-emerald-50 text-emerald-700',
   DROPPED: 'bg-red-50 text-red-700',
 };
-
-function toRawUrl(url: string): string {
-  if (url.includes('/image/upload/') && /\.(pdf|PDF)$/.test(url)) {
-    return url.replace('/image/upload/', '/raw/upload/');
-  }
-  return url;
-}
 
 const DOC_STATUS_STYLE: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700',
@@ -111,6 +104,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
   const [lopsNotes, setLopsNotes] = useState('');
   const [lopsSaving, setLopsSaving] = useState(false);
   const [lopsSaveMsg, setLopsSaveMsg] = useState('');
+  const [docFileError, setDocFileError] = useState('');
 
   const tabs = ['Overview', 'Products', 'Programs', 'Documents', 'Growth', 'Timeline'];
 
@@ -175,6 +169,15 @@ export function UMKMProfilePage({ id }: { id?: string }) {
       } : null);
     } catch {
       // silently fail
+    }
+  }
+
+  async function handleOpenDoc(doc: UMKMData['documents'][number]) {
+    setDocFileError('');
+    try {
+      await openDocumentFile(doc);
+    } catch {
+      setDocFileError('Gagal memuat file dokumen. Coba lagi beberapa saat.');
     }
   }
 
@@ -418,6 +421,11 @@ export function UMKMProfilePage({ id }: { id?: string }) {
       {/* Documents Tab */}
       {activeTab === 'Documents' && (
         <div className="flex flex-col gap-4">
+          {docFileError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {docFileError}
+            </div>
+          )}
           {umkm.documents.length === 0 ? (
             <GlassCard className="p-12 flex flex-col items-center justify-center gap-3 text-slate-400">
               <FileText className="w-10 h-10 text-slate-300" />
@@ -437,9 +445,9 @@ export function UMKMProfilePage({ id }: { id?: string }) {
               <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${DOC_STATUS_STYLE[doc.status] ?? 'bg-slate-100 text-slate-600'}`}>
                 {DOC_STATUS_LABEL[doc.status] ?? doc.status}
               </span>
-              <a href={toRawUrl(doc.fileUrl)} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors shrink-0">
+              <button onClick={() => handleOpenDoc(doc)} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors shrink-0">
                 <Eye className="w-4 h-4" />
-              </a>
+              </button>
               {isAdmin && doc.status !== 'VERIFIED' && (
                 <button onClick={() => handleVerifyDoc(doc.id, 'VERIFIED')}
                   className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-lg transition-colors shrink-0">

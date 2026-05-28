@@ -3,14 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Upload, Eye, Download, Trash2, FileText, X, Loader2, AlertTriangle } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
-import { documentsApi } from '@/lib/api';
-
-function toRawUrl(url: string): string {
-  if (url.includes('/image/upload/') && /\.(pdf|PDF)$/.test(url)) {
-    return url.replace('/image/upload/', '/raw/upload/');
-  }
-  return url;
-}
+import { documentsApi, openDocumentFile } from '@/lib/api';
 
 interface Document {
   id: string;
@@ -152,6 +145,7 @@ export default function DokumenPage() {
   const [showUpload, setShowUpload] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [fileError, setFileError] = useState('');
 
   const fetchDocs = () => {
     setLoading(true);
@@ -173,6 +167,15 @@ export default function DokumenPage() {
     } catch {
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleFileAction = async (doc: Document, download = false) => {
+    setFileError('');
+    try {
+      await openDocumentFile(doc, download);
+    } catch {
+      setFileError('Gagal memuat file dokumen. Coba lagi beberapa saat.');
     }
   };
 
@@ -228,6 +231,11 @@ export default function DokumenPage() {
         </GlassCard>
       ) : (
         <div className="flex flex-col gap-4">
+          {fileError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+              {fileError}
+            </div>
+          )}
           {docs.map(doc => (
             <GlassCard key={doc.id} className="p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
               <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100 shrink-0">
@@ -242,12 +250,12 @@ export default function DokumenPage() {
               <span className={`px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${STATUS_STYLE[doc.status] ?? 'bg-slate-100 text-slate-600'}`}>
                 {STATUS_LABEL[doc.status] ?? doc.status}
               </span>
-              <a href={toRawUrl(doc.fileUrl)} target="_blank" rel="noopener noreferrer" className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors">
+              <button onClick={() => handleFileAction(doc)} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors">
                 <Eye className="w-4 h-4" />
-              </a>
-              <a href={toRawUrl(doc.fileUrl)} download className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors">
+              </button>
+              <button onClick={() => handleFileAction(doc, true)} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg transition-colors">
                 <Download className="w-4 h-4" />
-              </a>
+              </button>
               <button onClick={() => setDeleteId(doc.id)} className="p-2 text-slate-400 hover:text-red-500 rounded-lg transition-colors">
                 <Trash2 className="w-4 h-4" />
               </button>
