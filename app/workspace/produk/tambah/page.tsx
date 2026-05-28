@@ -72,8 +72,8 @@ export default function TambahProduk() {
     setImagePreview(URL.createObjectURL(file));
     setUploading(true);
     try {
-      const res = await umkmApi.uploadProductImage(umkm.id, file);
-      setImageUrl(res.data.imageUrl);
+      const url = await umkmApi.uploadProductImage(umkm.id, file);
+      setImageUrl(url);
     } catch {
       setError('Gagal mengupload foto. Coba lagi.');
       setImagePreview('');

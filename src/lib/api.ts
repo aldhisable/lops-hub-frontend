@@ -54,13 +54,26 @@ export const umkmApi = {
     api.put(`/umkm/${umkmId}/products/${productId}`, data),
   deleteProduct: (umkmId: string, productId: string) =>
     api.delete(`/umkm/${umkmId}/products/${productId}`),
-  uploadProductImage: (umkmId: string, file: File) => {
-    const formData = new FormData();
-    formData.append('image', file);
-    return api.post<{ imageUrl: string; publicId: string }>(
-      `/umkm/${umkmId}/products/upload-image`, formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
+  // Upload foto langsung ke Cloudinary (tanpa proxy backend)
+  uploadProductImage: async (umkmId: string, file: File): Promise<string> => {
+    const { data: sign } = await api.get<{
+      timestamp: number; signature: string; apiKey: string; cloudName: string; folder: string;
+    }>(`/umkm/${umkmId}/products/cloudinary-sign`);
+
+    const form = new FormData();
+    form.append('file', file);
+    form.append('api_key', sign.apiKey);
+    form.append('timestamp', String(sign.timestamp));
+    form.append('signature', sign.signature);
+    form.append('folder', sign.folder);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
+      { method: 'POST', body: form }
     );
+    if (!res.ok) throw new Error('Cloudinary upload failed');
+    const data = await res.json();
+    return data.secure_url as string;
   },
 };
 
