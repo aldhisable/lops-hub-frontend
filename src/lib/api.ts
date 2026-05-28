@@ -71,8 +71,8 @@ export const umkmApi = {
       `https://api.cloudinary.com/v1_1/${sign.cloudName}/image/upload`,
       { method: 'POST', body: form }
     );
-    if (!res.ok) throw new Error('Cloudinary upload failed');
     const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message ?? 'Cloudinary upload failed');
     return data.secure_url as string;
   },
 };

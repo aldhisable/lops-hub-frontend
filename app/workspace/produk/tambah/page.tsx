@@ -74,8 +74,8 @@ export default function TambahProduk() {
     try {
       const url = await umkmApi.uploadProductImage(umkm.id, file);
       setImageUrl(url);
-    } catch {
-      setError('Gagal mengupload foto. Coba lagi.');
+    } catch (err: any) {
+      setError('Gagal mengupload foto: ' + (err?.message ?? 'coba lagi'));
       setImagePreview('');
     } finally {
       setUploading(false);
