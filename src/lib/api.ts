@@ -50,6 +50,18 @@ export const umkmApi = {
   archive: (id: string) => api.put(`/umkm/${id}`, { status: 'INACTIVE' }),
   products: (umkmId: string) => api.get(`/umkm/${umkmId}/products`),
   createProduct: (umkmId: string, data: Record<string, unknown>) => api.post(`/umkm/${umkmId}/products`, data),
+  updateProduct: (umkmId: string, productId: string, data: Record<string, unknown>) =>
+    api.put(`/umkm/${umkmId}/products/${productId}`, data),
+  deleteProduct: (umkmId: string, productId: string) =>
+    api.delete(`/umkm/${umkmId}/products/${productId}`),
+  uploadProductImage: (umkmId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return api.post<{ imageUrl: string; publicId: string }>(
+      `/umkm/${umkmId}/products/upload-image`, formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+  },
 };
 
 // Programs
