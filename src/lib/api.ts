@@ -171,6 +171,10 @@ export const analyticsApi = {
   revenueTrend: (year?: number, province?: string) =>
     api.get('/analytics/revenue-trend', { params: { year, province } }),
   addFinancial: (data: Record<string, unknown>) => api.post('/analytics/financial', data),
+  mapData: () => api.get<{
+    byCity: Array<{ city: string; province: string; count: number }>;
+    byProvince: Array<{ province: string; count: number }>;
+  }>('/analytics/map'),
 };
 
 export interface AuthUser {

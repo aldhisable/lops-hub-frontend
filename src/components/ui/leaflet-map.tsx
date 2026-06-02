@@ -9,14 +9,14 @@ import type { Layer, PathOptions } from 'leaflet';
 const GEOJSON_URL =
   'https://cdn.jsdelivr.net/gh/superpikar/indonesia-geojson@master/indonesia-provinces.geojson';
 
-// Warna choropleth berdasarkan jumlah UMKM
+// Warna choropleth berdasarkan jumlah UMKM (skala sesuai data riil max ~50)
 function getColor(count: number): string {
-  if (count > 350) return '#1e40af';
-  if (count > 250) return '#1d4ed8';
-  if (count > 150) return '#2563eb';
-  if (count > 80)  return '#3b82f6';
-  if (count > 30)  return '#60a5fa';
-  if (count > 0)   return '#93c5fd';
+  if (count > 30) return '#1e40af';
+  if (count > 20) return '#2563eb';
+  if (count > 10) return '#3b82f6';
+  if (count > 5)  return '#60a5fa';
+  if (count > 1)  return '#93c5fd';
+  if (count > 0)  return '#bfdbfe';
   return '#e2e8f0';
 }
 
