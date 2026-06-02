@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Download, Plus, MoreHorizontal, Search, Pencil, Archive, Trash2, X, AlertTriangle, MapPin } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { DataTable } from '@/components/ui/data-table';
@@ -151,10 +151,17 @@ function ConfirmModal({ confirm, loading, onCancel, onConfirm }: {
 }
 
 export function UMKMDirectoryPage() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const cityFilter = searchParams.get('city') ?? '';
-  const provinceFilter = searchParams.get('province') ?? '';
+
+  // Baca city/province dari URL tanpa useSearchParams (hindari Suspense boundary issue)
+  const [cityFilter, setCityFilter] = useState('');
+  const [provinceFilter, setProvinceFilter] = useState('');
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    setCityFilter(p.get('city') ?? '');
+    setProvinceFilter(p.get('province') ?? '');
+  }, []);
+
   const locationLabel = cityFilter || provinceFilter;
 
   const [data, setData] = useState<UMKMRow[]>([]);
