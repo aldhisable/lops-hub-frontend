@@ -83,6 +83,9 @@ export const programsApi = {
   get: (id: string) => api.get(`/programs/${id}`),
   create: (data: { name: string; description?: string; startDate: string; endDate: string; status?: string }) =>
     api.post('/programs', data),
+  update: (id: string, data: { name?: string; description?: string; startDate?: string; endDate?: string; status?: string }) =>
+    api.put(`/programs/${id}`, data),
+  delete: (id: string) => api.delete(`/programs/${id}`),
   join: (umkmId: string, programId: string) => api.post('/programs/join', { umkmId, programId }),
 };
 

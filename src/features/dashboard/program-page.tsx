@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { Plus, Download, MoreHorizontal, Calendar, Users, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Plus, Download, MoreHorizontal, Calendar, Users, X, Pencil, Trash2 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
@@ -17,23 +17,17 @@ interface Program {
   _count: { participants: number };
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  ACTIVE: 'Aktif',
-  UPCOMING: 'Pendaftaran',
-  COMPLETED: 'Selesai',
-};
+type FormState = { name: string; description: string; startDate: string; endDate: string; status: string };
 
+const STATUS_LABEL: Record<string, string> = { ACTIVE: 'Aktif', UPCOMING: 'Pendaftaran', COMPLETED: 'Selesai' };
 const STATUS_COLOR: Record<string, string> = {
   ACTIVE: 'bg-blue-50 text-blue-700',
   UPCOMING: 'bg-amber-50 text-amber-700',
   COMPLETED: 'bg-emerald-50 text-emerald-700',
 };
+const FILTER_TO_STATUS: Record<string, string> = { 'Aktif': 'ACTIVE', 'Pendaftaran': 'UPCOMING', 'Selesai': 'COMPLETED' };
 
-const FILTER_TO_STATUS: Record<string, string> = {
-  'Aktif': 'ACTIVE',
-  'Pendaftaran': 'UPCOMING',
-  'Selesai': 'COMPLETED',
-};
+function toDateInput(iso: string) { return iso ? iso.slice(0, 10) : ''; }
 
 function calcProgress(startDate: string, endDate: string, status: string): number {
   if (status === 'COMPLETED') return 100;
@@ -50,15 +44,55 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+function ProgramMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={e => { e.stopPropagation(); setOpen(v => !v); }}
+        className="p-1 hover:bg-slate-100 rounded-full text-slate-400"
+      >
+        <MoreHorizontal className="w-4 h-4" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-8 z-20 w-36 bg-white border border-slate-100 rounded-xl shadow-lg py-1 text-sm">
+          <button
+            onClick={() => { setOpen(false); onEdit(); }}
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <Pencil className="w-4 h-4 text-blue-500" /> Edit
+          </button>
+          <button
+            onClick={() => { setOpen(false); onDelete(); }}
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <Trash2 className="w-4 h-4" /> Hapus
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const EMPTY_FORM: FormState = { name: '', description: '', startDate: '', endDate: '', status: 'UPCOMING' };
+
 export function ProgramPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Semua');
   const [showModal, setShowModal] = useState(false);
+  const [editTarget, setEditTarget] = useState<Program | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    name: '', description: '', startDate: '', endDate: '', status: 'UPCOMING',
-  });
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [formError, setFormError] = useState('');
 
   const fetchPrograms = async () => {
@@ -74,10 +108,24 @@ export function ProgramPage() {
 
   useEffect(() => { fetchPrograms(); }, []);
 
-  const filtered = programs.filter(p => {
-    if (filter === 'Semua') return true;
-    return p.status === FILTER_TO_STATUS[filter];
-  });
+  const openCreate = () => { setEditTarget(null); setForm(EMPTY_FORM); setFormError(''); setShowModal(true); };
+  const openEdit = (prog: Program) => {
+    setEditTarget(prog);
+    setForm({ name: prog.name, description: prog.description ?? '', startDate: toDateInput(prog.startDate), endDate: toDateInput(prog.endDate), status: prog.status });
+    setFormError('');
+    setShowModal(true);
+  };
+  const closeModal = () => { setShowModal(false); setEditTarget(null); };
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Hapus program "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
+    try {
+      await programsApi.delete(id);
+      setPrograms(prev => prev.filter(p => p.id !== id));
+    } catch {
+      alert('Gagal menghapus program.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,22 +136,33 @@ export function ProgramPage() {
     }
     setSubmitting(true);
     try {
-      await programsApi.create({
-        name: form.name,
-        description: form.description || undefined,
-        startDate: form.startDate,
-        endDate: form.endDate,
-        status: form.status,
-      });
-      setShowModal(false);
-      setForm({ name: '', description: '', startDate: '', endDate: '', status: 'UPCOMING' });
+      if (editTarget) {
+        await programsApi.update(editTarget.id, {
+          name: form.name,
+          description: form.description || undefined,
+          startDate: form.startDate,
+          endDate: form.endDate,
+          status: form.status,
+        });
+      } else {
+        await programsApi.create({
+          name: form.name,
+          description: form.description || undefined,
+          startDate: form.startDate,
+          endDate: form.endDate,
+          status: form.status,
+        });
+      }
+      closeModal();
       await fetchPrograms();
     } catch (err: any) {
-      setFormError(err?.response?.data?.error ?? 'Gagal membuat program.');
+      setFormError(err?.response?.data?.error ?? 'Gagal menyimpan program.');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const filtered = programs.filter(p => filter === 'Semua' || p.status === FILTER_TO_STATUS[filter]);
 
   return (
     <>
@@ -116,7 +175,7 @@ export function ProgramPage() {
           <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">
             <Download className="w-4 h-4" /> Export
           </button>
-          <GlowButton variant="primary" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" onClick={() => setShowModal(true)}>
+          <GlowButton variant="primary" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" onClick={openCreate}>
             <Plus className="w-4 h-4" /> Tambah Program
           </GlowButton>
         </div>
@@ -138,12 +197,13 @@ export function ProgramPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {filtered.map(prog => {
             const progress = calcProgress(prog.startDate, prog.endDate, prog.status);
-            const label = STATUS_LABEL[prog.status] ?? prog.status;
             return (
-              <GlassCard key={prog.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
+              <GlassCard key={prog.id} className="p-6 hover:shadow-lg transition-shadow">
                 <div className="flex justify-between items-start mb-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUS_COLOR[prog.status] ?? 'bg-slate-100 text-slate-600'}`}>{label}</span>
-                  <button className="p-1 hover:bg-slate-100 rounded-full text-slate-400"><MoreHorizontal className="w-4 h-4" /></button>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${STATUS_COLOR[prog.status] ?? 'bg-slate-100 text-slate-600'}`}>
+                    {STATUS_LABEL[prog.status] ?? prog.status}
+                  </span>
+                  <ProgramMenu onEdit={() => openEdit(prog)} onDelete={() => handleDelete(prog.id, prog.name)} />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{prog.name}</h3>
                 <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
@@ -163,14 +223,14 @@ export function ProgramPage() {
         </div>
       )}
 
-      {/* Modal Tambah Program */}
+      {/* Modal Tambah / Edit Program */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <GlassCard className="w-full max-w-lg p-8 relative">
-            <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-lg text-slate-400">
+            <button onClick={closeModal} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-lg text-slate-400">
               <X className="w-5 h-5" />
             </button>
-            <h2 className="text-xl font-bold text-slate-900 mb-6">Tambah Program Baru</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-6">{editTarget ? 'Edit Program' : 'Tambah Program Baru'}</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Nama Program <span className="text-red-500">*</span></label>
@@ -228,7 +288,7 @@ export function ProgramPage() {
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeModal}
                   className="flex-1 py-2.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 >
                   Batal
@@ -238,7 +298,7 @@ export function ProgramPage() {
                   disabled={submitting}
                   className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  {submitting ? 'Menyimpan...' : 'Simpan Program'}
+                  {submitting ? 'Menyimpan...' : editTarget ? 'Simpan Perubahan' : 'Simpan Program'}
                 </button>
               </div>
             </form>
