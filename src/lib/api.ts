@@ -81,6 +81,8 @@ export const umkmApi = {
 export const programsApi = {
   list: () => api.get('/programs'),
   get: (id: string) => api.get(`/programs/${id}`),
+  create: (data: { name: string; description?: string; startDate: string; endDate: string; status?: string }) =>
+    api.post('/programs', data),
   join: (umkmId: string, programId: string) => api.post('/programs/join', { umkmId, programId }),
 };
 
