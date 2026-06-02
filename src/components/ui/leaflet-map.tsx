@@ -34,7 +34,7 @@ export interface ProvinceData {
 interface LeafletMapProps {
   cityPins?: CityPin[];
   provinceData?: ProvinceData;
-  onSelectPin?: (label: string, count: number) => void;
+  onSelectPin?: (label: string, count: number, isCity?: boolean) => void;
   height?: string;
 }
 
@@ -91,7 +91,7 @@ export function LeafletMap({
 
       l.on('mouseover', () => l.setStyle({ fillOpacity: 0.85, weight: 2 }));
       l.on('mouseout', () => l.setStyle({ fillOpacity: 0.65, weight: 1.2 }));
-      l.on('click', () => onSelectPin?.(displayName, count));
+      l.on('click', () => onSelectPin?.(displayName, count, false));
 
       l.bindTooltip(
         `<div style="font-family:Inter,sans-serif;line-height:1.4;padding:2px 4px">
@@ -145,7 +145,7 @@ export function LeafletMap({
               fillColor: '#2563eb',
               fillOpacity: 0.9,
             }}
-            eventHandlers={{ click: () => onSelectPin?.(pin.label, pin.count) }}
+            eventHandlers={{ click: () => onSelectPin?.(pin.label, pin.count, true) }}
           >
             <Tooltip permanent direction="top" offset={[0, -radius - 2]}>
               <span style={{ fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap' }}>

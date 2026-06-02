@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Download, Plus, MoreHorizontal, Search, Pencil, Archive, Trash2, X, AlertTriangle } from 'lucide-react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Download, Plus, MoreHorizontal, Search, Pencil, Archive, Trash2, X, AlertTriangle, MapPin } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { DataTable } from '@/components/ui/data-table';
 import { FilterChips } from '@/components/ui/filter-chips';
@@ -150,6 +151,12 @@ function ConfirmModal({ confirm, loading, onCancel, onConfirm }: {
 }
 
 export function UMKMDirectoryPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const cityFilter = searchParams.get('city') ?? '';
+  const provinceFilter = searchParams.get('province') ?? '';
+  const locationLabel = cityFilter || provinceFilter;
+
   const [data, setData] = useState<UMKMRow[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -173,6 +180,8 @@ export function UMKMDirectoryPage() {
     if (search) params.search = search;
     const cls = filterToApi[activeFilter];
     if (cls) params.classification = cls;
+    if (cityFilter) params.city = cityFilter;
+    if (provinceFilter) params.province = provinceFilter;
 
     umkmApi
       .list(params)
@@ -182,7 +191,7 @@ export function UMKMDirectoryPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [page, search, activeFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page, search, activeFilter, cityFilter, provinceFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchData();
@@ -267,6 +276,18 @@ export function UMKMDirectoryPage() {
           <p className="text-slate-500 mt-1">
             Kelola dan pantau data {loading ? '...' : total.toLocaleString('id-ID')} UMKM yang terdaftar di sistem.
           </p>
+          {locationLabel && (
+            <div className="flex items-center gap-2 mt-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg w-fit">
+              <MapPin className="w-3.5 h-3.5 text-blue-500" />
+              <span className="text-sm text-blue-700 font-medium">{locationLabel}</span>
+              <button
+                onClick={() => router.push('/dashboard/umkm')}
+                className="ml-1 text-blue-400 hover:text-blue-600 text-xs font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">

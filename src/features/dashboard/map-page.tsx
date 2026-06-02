@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Filter, MapPin, Info } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -214,9 +215,10 @@ const LEGEND = [
 ];
 
 export function MapPage() {
+  const router = useRouter();
   const [activeProgram, setActiveProgram] = useState('Semua Program');
   const [activeClass, setActiveClass] = useState('Semua Kelas');
-  const [selected, setSelected] = useState<{ label: string; count: number } | null>(null);
+  const [selected, setSelected] = useState<{ label: string; count: number; isCity: boolean } | null>(null);
   const [cityPins, setCityPins] = useState<CityPin[]>([]);
   const [provinceData, setProvinceData] = useState<ProvinceData>({});
   const [loading, setLoading] = useState(true);
@@ -248,7 +250,7 @@ export function MapPage() {
 
         // Default selected = kota terbanyak
         const top = Array.from(pinMap.values()).sort((a, b) => b.count - a.count)[0];
-        if (top) setSelected({ label: top.label, count: top.count });
+        if (top) setSelected({ label: top.label, count: top.count, isCity: true });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -295,7 +297,7 @@ export function MapPage() {
         <LeafletMap
           cityPins={cityPins}
           provinceData={provinceData}
-          onSelectPin={(label, count) => setSelected({ label, count })}
+          onSelectPin={(label, count, isCity) => setSelected({ label, count, isCity: isCity ?? false })}
           height="100%"
         />
 
@@ -334,7 +336,15 @@ export function MapPage() {
                 <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full">Aktif</span>
               </div>
               <div className="mt-2 pt-3 border-t border-slate-100">
-                <button className="w-full py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                <button
+                  onClick={() => {
+                    const param = selected.isCity
+                      ? `city=${encodeURIComponent(selected.label)}`
+                      : `province=${encodeURIComponent(selected.label)}`;
+                    router.push(`/dashboard/umkm?${param}`);
+                  }}
+                  className="w-full py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                >
                   Lihat UMKM di Wilayah Ini
                 </button>
               </div>
