@@ -223,8 +223,33 @@ export function MapPage() {
   const [provinceData, setProvinceData] = useState<ProvinceData>({});
   const [loading, setLoading] = useState(true);
 
+  const classMap: Record<string, string | undefined> = {
+    'Semua Kelas': undefined,
+    'Platinum': 'PLATINUM',
+    'Gold': 'GOLD',
+    'Silver': 'SILVER',
+    'Bronze': 'BRONZE',
+  };
+
+  const programMap: Record<string, string | undefined> = {
+    'Semua Program': undefined,
+    'Maritimepreneur': 'Maritimepreneur',
+    'UMK Akselerator': 'Akselerator',
+    'Gedor Ekspor': 'Gedor',
+  };
+
   useEffect(() => {
-    analyticsApi.mapData()
+    setLoading(true);
+    setCityPins([]);
+    setProvinceData({});
+
+    const params: { classification?: string; program?: string } = {};
+    const cls = classMap[activeClass];
+    if (cls) params.classification = cls;
+    const prog = programMap[activeProgram];
+    if (prog) params.program = prog;
+
+    analyticsApi.mapData(Object.keys(params).length ? params : undefined)
       .then(({ data }) => {
         // ── City pins ──────────────────────────────────────────────────────
         const pinMap = new Map<string, CityPin>();
@@ -254,7 +279,7 @@ export function MapPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [activeClass, activeProgram]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalUmkm = cityPins.reduce((s, p) => s + p.count, 0);
 
