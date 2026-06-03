@@ -153,13 +153,18 @@ function ConfirmModal({ confirm, loading, onCancel, onConfirm }: {
 export function UMKMDirectoryPage() {
   const router = useRouter();
 
-  // Baca city/province dari URL tanpa useSearchParams (hindari Suspense boundary issue)
+  // Baca city/province/classification dari URL tanpa useSearchParams (hindari Suspense boundary issue)
   const [cityFilter, setCityFilter] = useState('');
   const [provinceFilter, setProvinceFilter] = useState('');
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     setCityFilter(p.get('city') ?? '');
     setProvinceFilter(p.get('province') ?? '');
+    const cls = p.get('classification');
+    if (cls) {
+      const label = cls.charAt(0) + cls.slice(1).toLowerCase();
+      setActiveFilter(label);
+    }
   }, []);
 
   const locationLabel = cityFilter || provinceFilter;

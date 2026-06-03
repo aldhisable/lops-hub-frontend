@@ -5,7 +5,7 @@ import {
   PieChart, FileText, Eye,
   ArrowLeft, CheckCircle2, Phone, AtSign,
   Globe, ShoppingBag, TrendingUp,
-  AlignLeft, ChevronRight, Edit3, Clock, MapPin
+  AlignLeft, ChevronRight, Edit3, Clock, MapPin, X
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
@@ -107,6 +107,17 @@ export function UMKMProfilePage({ id }: { id?: string }) {
   const [lopsSaveMsg, setLopsSaveMsg] = useState('');
   const [docFileError, setDocFileError] = useState('');
 
+  // Edit profile modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState<{
+    name: string; category: string; establishedYear: string;
+    city: string; province: string; address: string;
+    phone: string; instagram: string; website: string;
+    description: string; status: string; classification: string;
+  }>({ name: '', category: '', establishedYear: '', city: '', province: '', address: '', phone: '', instagram: '', website: '', description: '', status: '', classification: '' });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState('');
+
   const tabs = ['Overview', 'Products', 'Programs', 'Documents', 'Growth', 'Timeline'];
 
   useEffect(() => {
@@ -182,6 +193,56 @@ export function UMKMProfilePage({ id }: { id?: string }) {
     }
   }
 
+  function openEditModal() {
+    if (!umkm) return;
+    setEditForm({
+      name: umkm.name,
+      category: umkm.category,
+      establishedYear: umkm.establishedYear ? String(umkm.establishedYear) : '',
+      city: umkm.city ?? '',
+      province: umkm.province ?? '',
+      address: umkm.address ?? '',
+      phone: umkm.phone ?? '',
+      instagram: umkm.instagram ?? '',
+      website: umkm.website ?? '',
+      description: umkm.description ?? '',
+      status: umkm.status,
+      classification: umkm.classification,
+    });
+    setEditError('');
+    setShowEditModal(true);
+  }
+
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id) return;
+    setEditSaving(true);
+    setEditError('');
+    try {
+      const payload: Record<string, unknown> = {
+        name: editForm.name,
+        category: editForm.category,
+        city: editForm.city || null,
+        province: editForm.province || null,
+        address: editForm.address || null,
+        phone: editForm.phone || null,
+        instagram: editForm.instagram || null,
+        website: editForm.website || null,
+        description: editForm.description || null,
+        status: editForm.status,
+        classification: editForm.classification,
+        establishedYear: editForm.establishedYear ? parseInt(editForm.establishedYear) : null,
+      };
+      const res = await umkmApi.update(id, payload);
+      setUmkm(prev => prev ? { ...prev, ...res.data } : null);
+      setShowEditModal(false);
+    } catch {
+      setEditError('Gagal menyimpan perubahan. Coba lagi.');
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
   const revenueTrendData = (umkm?.financials ?? [])
     .filter((f) => f.year === new Date().getFullYear())
     .map((f) => ({ month: MONTHS_ID[f.month] ?? String(f.month), revenue: f.revenue }));
@@ -228,7 +289,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
           <Link href="/dashboard/umkm" className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Kembali
           </Link>
-          <GlowButton variant="primary" className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium">
+          <GlowButton variant="primary" onClick={openEditModal} className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium">
             <Edit3 className="w-4 h-4" /> Edit Profile
           </GlowButton>
         </div>
@@ -635,6 +696,109 @@ export function UMKMProfilePage({ id }: { id?: string }) {
             ))}
           </div>
         </GlassCard>
+      )}
+
+      {/* Edit Profile Modal */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h2 className="text-lg font-bold text-slate-900">Edit Profile UMKM</h2>
+              <button onClick={() => setShowEditModal(false)} className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            {/* Form */}
+            <form id="edit-umkm-form" onSubmit={handleSaveEdit} className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Nama UMKM <span className="text-red-500">*</span></label>
+                  <input required value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Kategori <span className="text-red-500">*</span></label>
+                  <input required value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Tahun Berdiri</label>
+                  <input type="number" min="1900" max={new Date().getFullYear()} value={editForm.establishedYear}
+                    onChange={e => setEditForm(f => ({ ...f, establishedYear: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Kota</label>
+                  <input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Provinsi</label>
+                  <input value={editForm.province} onChange={e => setEditForm(f => ({ ...f, province: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Alamat</label>
+                  <textarea rows={2} value={editForm.address} onChange={e => setEditForm(f => ({ ...f, address: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">No. Telepon</label>
+                  <input value={editForm.phone} onChange={e => setEditForm(f => ({ ...f, phone: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Instagram</label>
+                  <input value={editForm.instagram} onChange={e => setEditForm(f => ({ ...f, instagram: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Website</label>
+                  <input value={editForm.website} onChange={e => setEditForm(f => ({ ...f, website: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Status</label>
+                  <select value={editForm.status} onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <option value="ACTIVE">Aktif</option>
+                    <option value="INACTIVE">Tidak Aktif</option>
+                    <option value="GRADUATED">Lulus</option>
+                    <option value="PENDING">Pending</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Klasifikasi</label>
+                  <select value={editForm.classification} onChange={e => setEditForm(f => ({ ...f, classification: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <option value="BRONZE">Bronze</option>
+                    <option value="SILVER">Silver</option>
+                    <option value="GOLD">Gold</option>
+                    <option value="PLATINUM">Platinum</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Deskripsi Usaha</label>
+                  <textarea rows={3} value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
+                </div>
+              </div>
+              {editError && <p className="text-sm text-red-500 font-medium">{editError}</p>}
+            </form>
+            {/* Footer */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-100">
+              <button type="button" onClick={() => setShowEditModal(false)}
+                className="px-5 py-2.5 rounded-xl text-sm font-medium border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors">
+                Batal
+              </button>
+              <button type="submit" form="edit-umkm-form" disabled={editSaving}
+                className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white transition-colors">
+                {editSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
