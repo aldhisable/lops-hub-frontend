@@ -791,6 +791,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                       onFocus={() => { setProvinceSearch(''); setShowProvinceDropdown(true); }}
                       placeholder={provincesLoading ? 'Memuat provinsi...' : 'Cari provinsi...'}
                       readOnly={provincesLoading}
+                      autoComplete="off"
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300 pr-8"
                     />
                     <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -822,6 +823,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                       onFocus={() => { setCitySearch(''); setShowCityDropdown(true); }}
                       placeholder={!editForm.province ? 'Pilih provinsi dulu' : citiesLoading ? 'Memuat kota...' : 'Cari kota/kabupaten...'}
                       disabled={!editForm.province || citiesLoading}
+                      autoComplete="off"
                       className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300 pr-8 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
                     />
                     <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
