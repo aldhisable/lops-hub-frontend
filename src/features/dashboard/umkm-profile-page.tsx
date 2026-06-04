@@ -18,6 +18,58 @@ import Link from 'next/link';
 
 const MONTHS_ID = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
 
+interface Wilayah { id: string; name: string; }
+
+const FALLBACK_PROVINCES: Wilayah[] = [
+  { id: '11', name: 'Aceh' },
+  { id: '12', name: 'Sumatera Utara' },
+  { id: '13', name: 'Sumatera Barat' },
+  { id: '14', name: 'Riau' },
+  { id: '15', name: 'Jambi' },
+  { id: '16', name: 'Sumatera Selatan' },
+  { id: '17', name: 'Bengkulu' },
+  { id: '18', name: 'Lampung' },
+  { id: '19', name: 'Kepulauan Bangka Belitung' },
+  { id: '21', name: 'Kepulauan Riau' },
+  { id: '31', name: 'DKI Jakarta' },
+  { id: '32', name: 'Jawa Barat' },
+  { id: '33', name: 'Jawa Tengah' },
+  { id: '34', name: 'DI Yogyakarta' },
+  { id: '35', name: 'Jawa Timur' },
+  { id: '36', name: 'Banten' },
+  { id: '51', name: 'Bali' },
+  { id: '52', name: 'Nusa Tenggara Barat' },
+  { id: '53', name: 'Nusa Tenggara Timur' },
+  { id: '61', name: 'Kalimantan Barat' },
+  { id: '62', name: 'Kalimantan Tengah' },
+  { id: '63', name: 'Kalimantan Selatan' },
+  { id: '64', name: 'Kalimantan Timur' },
+  { id: '65', name: 'Kalimantan Utara' },
+  { id: '71', name: 'Sulawesi Utara' },
+  { id: '72', name: 'Sulawesi Tengah' },
+  { id: '73', name: 'Sulawesi Selatan' },
+  { id: '74', name: 'Sulawesi Tenggara' },
+  { id: '75', name: 'Gorontalo' },
+  { id: '76', name: 'Sulawesi Barat' },
+  { id: '81', name: 'Maluku' },
+  { id: '82', name: 'Maluku Utara' },
+  { id: '91', name: 'Papua Barat' },
+  { id: '92', name: 'Papua Barat Daya' },
+  { id: '94', name: 'Papua' },
+  { id: '95', name: 'Papua Selatan' },
+  { id: '96', name: 'Papua Tengah' },
+  { id: '97', name: 'Papua Pegunungan' },
+];
+
+const FALLBACK_PROVINCE_BY_ID = new Map(FALLBACK_PROVINCES.map(p => [p.id, p.name]));
+
+function normalizeProvinceOptions(data: Wilayah[]): Wilayah[] {
+  return data.map(p => ({
+    id: p.id,
+    name: FALLBACK_PROVINCE_BY_ID.get(p.id) ?? p.name,
+  }));
+}
+
 const RADAR_STUB = [
   { subject: 'Spread', A: 80, fullMark: 100 },
   { subject: 'Size', A: 75, fullMark: 100 },
@@ -119,10 +171,12 @@ export function UMKMProfilePage({ id }: { id?: string }) {
   const [editError, setEditError] = useState('');
 
   // Province / city dropdown state
-  const [provinces, setProvinces] = useState<Array<{ id: string; name: string }>>([]);
-  const [cities, setCities] = useState<Array<{ id: string; name: string }>>([]);
+  const [provinces, setProvinces] = useState<Wilayah[]>(FALLBACK_PROVINCES);
+  const [cities, setCities] = useState<Wilayah[]>([]);
   const [provincesLoading, setProvincesLoading] = useState(false);
   const [citiesLoading, setCitiesLoading] = useState(false);
+  const [provinceLoadWarning, setProvinceLoadWarning] = useState('');
+  const [cityLoadWarning, setCityLoadWarning] = useState('');
   const [provinceSearch, setProvinceSearch] = useState('');
   const [citySearch, setCitySearch] = useState('');
   const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
@@ -131,29 +185,93 @@ export function UMKMProfilePage({ id }: { id?: string }) {
   const cityRef = useRef<HTMLDivElement>(null);
 
   const tabs = ['Overview', 'Products', 'Programs', 'Documents', 'Growth', 'Timeline'];
+  const filteredProvinces = provinces.filter(p => p.name.toLowerCase().includes(provinceSearch.toLowerCase()));
+  const filteredCities = cities.filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase()));
 
   // Fetch provinces when modal opens
   useEffect(() => {
     if (!showEditModal) return;
-    setProvincesLoading(true);
+    let cancelled = false;
+
     fetch('https://emsifa.github.io/api-wilayah-indonesia/api/provinces.json')
-      .then(r => r.json())
-      .then((data: Array<{ id: string; name: string }>) => setProvinces(data))
-      .catch(() => {})
-      .finally(() => setProvincesLoading(false));
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to load provinces');
+        return r.json();
+      })
+      .then((data: Wilayah[]) => {
+        if (!cancelled) setProvinces(normalizeProvinceOptions(data));
+      })
+      .catch(() => {
+        if (!cancelled) setProvinceLoadWarning('Gagal memuat data terbaru, memakai daftar provinsi cadangan.');
+      })
+      .finally(() => {
+        if (!cancelled) setProvincesLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [showEditModal]);
 
   // Fetch cities when province changes
   useEffect(() => {
-    if (!editForm.province || provinces.length === 0) { setCities([]); return; }
-    const matched = provinces.find(p => p.name.toLowerCase() === editForm.province.toLowerCase());
-    if (!matched) { setCities([]); return; }
-    setCitiesLoading(true);
+    let cancelled = false;
+
+    if (!editForm.province || provinces.length === 0) {
+      Promise.resolve().then(() => {
+        if (!cancelled) {
+          setCities([]);
+          setCityLoadWarning('');
+          setCitiesLoading(false);
+        }
+      });
+      return () => { cancelled = true; };
+    }
+    const matched = [...provinces, ...FALLBACK_PROVINCES].find(p => p.name.toLowerCase() === editForm.province.toLowerCase());
+    if (!matched) {
+      Promise.resolve().then(() => {
+        if (!cancelled) {
+          setCities([]);
+          setCityLoadWarning('');
+          setCitiesLoading(false);
+        }
+      });
+      return () => { cancelled = true; };
+    }
+
     fetch(`https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${matched.id}.json`)
-      .then(r => r.json())
-      .then((data: Array<{ id: string; name: string }>) => setCities(data))
-      .catch(() => {})
-      .finally(() => setCitiesLoading(false));
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to load cities');
+        return r.json();
+      })
+      .then((data: Wilayah[]) => {
+        if (!cancelled) {
+          setCities(data);
+          setCityLoadWarning('');
+        }
+      })
+      .catch(() =>
+        fetch(`https://ibnux.github.io/data-indonesia/kabupaten/${matched.id}.json`)
+          .then(r => {
+            if (!r.ok) throw new Error('Failed to load fallback cities');
+            return r.json();
+          })
+          .then((data: Array<{ id: string; nama: string }>) => {
+            if (!cancelled) {
+              setCities(data.map(d => ({ id: d.id, name: d.nama })));
+              setCityLoadWarning('');
+            }
+          })
+          .catch(() => {
+            if (!cancelled) {
+              setCities([]);
+              setCityLoadWarning('Gagal memuat kota/kabupaten untuk provinsi ini.');
+            }
+          })
+      )
+      .finally(() => {
+        if (!cancelled) setCitiesLoading(false);
+      });
+
+    return () => { cancelled = true; };
   }, [editForm.province, provinces]);
 
   // Close dropdowns on outside click
@@ -260,6 +378,12 @@ export function UMKMProfilePage({ id }: { id?: string }) {
       classification: umkm.classification,
     });
     setEditError('');
+    setProvinces(FALLBACK_PROVINCES);
+    setCities([]);
+    setProvincesLoading(true);
+    setCitiesLoading(Boolean(umkm.province));
+    setProvinceLoadWarning('');
+    setCityLoadWarning('');
     setProvinceSearch('');
     setCitySearch('');
     setShowProvinceDropdown(false);
@@ -784,64 +908,117 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                 </div>
                 <div className="relative" ref={provinceRef}>
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Provinsi</label>
-                  <div className="relative">
-                    <input
-                      value={showProvinceDropdown ? provinceSearch : editForm.province}
-                      onChange={e => { setProvinceSearch(e.target.value); setShowProvinceDropdown(true); }}
-                      onFocus={() => { setProvinceSearch(''); setShowProvinceDropdown(true); }}
-                      placeholder={provincesLoading ? 'Memuat provinsi...' : 'Cari provinsi...'}
-                      readOnly={provincesLoading}
-                      autoComplete="off"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300 pr-8"
-                    />
-                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
-                  {showProvinceDropdown && provinces.length > 0 && (
-                    <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                      {provinces
-                        .filter(p => p.name.toLowerCase().includes(provinceSearch.toLowerCase()))
-                        .map(p => (
-                          <button key={p.id} type="button"
-                            onClick={() => {
-                              setEditForm(f => ({ ...f, province: p.name, city: '' }));
-                              setShowProvinceDropdown(false);
-                              setCities([]);
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
-                            {p.name}
-                          </button>
-                        ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProvinceSearch('');
+                      setShowProvinceDropdown(v => !v);
+                      setShowCityDropdown(false);
+                    }}
+                    className={`w-full flex items-center justify-between gap-2 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white ${editForm.province ? 'text-slate-800' : 'text-slate-400'}`}
+                  >
+                    <span className="truncate">{editForm.province || (provincesLoading ? 'Memuat provinsi...' : 'Cari provinsi...')}</span>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${showProvinceDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  {showProvinceDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+                      <div className="p-2 border-b border-slate-100">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                          <input
+                            type="search"
+                            value={provinceSearch}
+                            onChange={e => setProvinceSearch(e.target.value)}
+                            placeholder="Cari provinsi..."
+                            autoFocus
+                            autoComplete="new-password"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            name="umkm-location-query"
+                            className="w-full border border-slate-200 rounded-md pl-8 pr-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto">
+                        {provincesLoading && provinces.length === 0 ? (
+                          <div className="px-3 py-3 text-center text-sm text-slate-400">Memuat provinsi...</div>
+                        ) : filteredProvinces.length === 0 ? (
+                          <div className="px-3 py-3 text-center text-sm text-slate-400">Provinsi tidak ditemukan</div>
+                        ) : (
+                          filteredProvinces.map(p => (
+                            <button key={p.id} type="button"
+                              onClick={() => {
+                                setEditForm(f => ({ ...f, province: p.name, city: '' }));
+                                setProvinceSearch('');
+                                setShowProvinceDropdown(false);
+                                setCities([]);
+                                setCityLoadWarning('');
+                                setCitiesLoading(true);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors ${p.name.toLowerCase() === editForm.province.toLowerCase() ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'}`}>
+                              {p.name}
+                            </button>
+                          ))
+                        )}
+                        {provinceLoadWarning && (
+                          <div className="border-t border-slate-100 px-3 py-2 text-xs text-amber-600">{provinceLoadWarning}</div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
                 <div className="relative" ref={cityRef}>
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Kota / Kabupaten</label>
-                  <div className="relative">
-                    <input
-                      value={showCityDropdown ? citySearch : editForm.city}
-                      onChange={e => { setCitySearch(e.target.value); setShowCityDropdown(true); }}
-                      onFocus={() => { setCitySearch(''); setShowCityDropdown(true); }}
-                      placeholder={!editForm.province ? 'Pilih provinsi dulu' : citiesLoading ? 'Memuat kota...' : 'Cari kota/kabupaten...'}
-                      disabled={!editForm.province || citiesLoading}
-                      autoComplete="off"
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300 pr-8 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
-                    />
-                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  </div>
-                  {showCityDropdown && cities.length > 0 && (
-                    <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                      {cities
-                        .filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase()))
-                        .map(c => (
-                          <button key={c.id} type="button"
-                            onClick={() => {
-                              setEditForm(f => ({ ...f, city: c.name }));
-                              setShowCityDropdown(false);
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
-                            {c.name}
-                          </button>
-                        ))}
+                  <button
+                    type="button"
+                    disabled={!editForm.province || citiesLoading}
+                    onClick={() => {
+                      if (!editForm.province || citiesLoading) return;
+                      setCitySearch('');
+                      setShowCityDropdown(v => !v);
+                      setShowProvinceDropdown(false);
+                    }}
+                    className={`w-full flex items-center justify-between gap-2 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed bg-white ${editForm.city ? 'text-slate-800' : 'text-slate-400'}`}
+                  >
+                    <span className="truncate">{editForm.city || (!editForm.province ? 'Pilih provinsi dulu' : citiesLoading ? 'Memuat kota...' : 'Cari kota/kabupaten...')}</span>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform ${showCityDropdown ? 'rotate-180' : ''}`} />
+                  </button>
+                  {showCityDropdown && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden">
+                      <div className="p-2 border-b border-slate-100">
+                        <div className="relative">
+                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                          <input
+                            type="search"
+                            value={citySearch}
+                            onChange={e => setCitySearch(e.target.value)}
+                            placeholder="Cari kota/kabupaten..."
+                            autoFocus
+                            autoComplete="new-password"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            name="umkm-city-query"
+                            className="w-full border border-slate-200 rounded-md pl-8 pr-3 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                          />
+                        </div>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto">
+                        {filteredCities.length === 0 ? (
+                          <div className="px-3 py-3 text-center text-sm text-slate-400">{cityLoadWarning || 'Kota/kabupaten tidak ditemukan'}</div>
+                        ) : (
+                          filteredCities.map(c => (
+                            <button key={c.id} type="button"
+                              onClick={() => {
+                                setEditForm(f => ({ ...f, city: c.name }));
+                                setCitySearch('');
+                                setShowCityDropdown(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors ${c.name.toLowerCase() === editForm.city.toLowerCase() ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'}`}>
+                              {c.name}
+                            </button>
+                          ))
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
