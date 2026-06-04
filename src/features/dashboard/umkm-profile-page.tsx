@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   PieChart, FileText, Eye,
   ArrowLeft, CheckCircle2, Phone, AtSign,
   Globe, ShoppingBag, TrendingUp,
-  AlignLeft, ChevronRight, Edit3, Clock, MapPin, X
+  AlignLeft, ChevronRight, Edit3, Clock, MapPin, X, ChevronDown, Search
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
@@ -118,7 +118,57 @@ export function UMKMProfilePage({ id }: { id?: string }) {
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState('');
 
+  // Province / city dropdown state
+  const [provinces, setProvinces] = useState<Array<{ id: string; name: string }>>([]);
+  const [cities, setCities] = useState<Array<{ id: string; name: string }>>([]);
+  const [provincesLoading, setProvincesLoading] = useState(false);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [provinceSearch, setProvinceSearch] = useState('');
+  const [citySearch, setCitySearch] = useState('');
+  const [showProvinceDropdown, setShowProvinceDropdown] = useState(false);
+  const [showCityDropdown, setShowCityDropdown] = useState(false);
+  const provinceRef = useRef<HTMLDivElement>(null);
+  const cityRef = useRef<HTMLDivElement>(null);
+
   const tabs = ['Overview', 'Products', 'Programs', 'Documents', 'Growth', 'Timeline'];
+
+  // Fetch provinces when modal opens
+  useEffect(() => {
+    if (!showEditModal) return;
+    setProvincesLoading(true);
+    fetch('https://emsifa.github.io/api-wilayah-indonesia/api/provinces.json')
+      .then(r => r.json())
+      .then((data: Array<{ id: string; name: string }>) => setProvinces(data))
+      .catch(() => {})
+      .finally(() => setProvincesLoading(false));
+  }, [showEditModal]);
+
+  // Fetch cities when province changes
+  useEffect(() => {
+    if (!editForm.province || provinces.length === 0) { setCities([]); return; }
+    const matched = provinces.find(p => p.name.toLowerCase() === editForm.province.toLowerCase());
+    if (!matched) { setCities([]); return; }
+    setCitiesLoading(true);
+    fetch(`https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${matched.id}.json`)
+      .then(r => r.json())
+      .then((data: Array<{ id: string; name: string }>) => setCities(data))
+      .catch(() => {})
+      .finally(() => setCitiesLoading(false));
+  }, [editForm.province, provinces]);
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (provinceRef.current && !provinceRef.current.contains(e.target as Node)) {
+        setShowProvinceDropdown(false);
+      }
+      if (cityRef.current && !cityRef.current.contains(e.target as Node)) {
+        setShowCityDropdown(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!id) { setLoading(false); return; }
@@ -210,6 +260,10 @@ export function UMKMProfilePage({ id }: { id?: string }) {
       classification: umkm.classification,
     });
     setEditError('');
+    setProvinceSearch('');
+    setCitySearch('');
+    setShowProvinceDropdown(false);
+    setShowCityDropdown(false);
     setShowEditModal(true);
   }
 
@@ -728,15 +782,66 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                     onChange={e => setEditForm(f => ({ ...f, establishedYear: e.target.value }))}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
                 </div>
-                <div>
-                  <label className="text-xs font-medium text-slate-600 mb-1 block">Kota</label>
-                  <input value={editForm.city} onChange={e => setEditForm(f => ({ ...f, city: e.target.value }))}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                </div>
-                <div>
+                <div className="relative" ref={provinceRef}>
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Provinsi</label>
-                  <input value={editForm.province} onChange={e => setEditForm(f => ({ ...f, province: e.target.value }))}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                  <div className="relative">
+                    <input
+                      value={showProvinceDropdown ? provinceSearch : editForm.province}
+                      onChange={e => { setProvinceSearch(e.target.value); setShowProvinceDropdown(true); }}
+                      onFocus={() => { setProvinceSearch(''); setShowProvinceDropdown(true); }}
+                      placeholder={provincesLoading ? 'Memuat provinsi...' : 'Cari provinsi...'}
+                      readOnly={provincesLoading}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300 pr-8"
+                    />
+                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                  {showProvinceDropdown && provinces.length > 0 && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {provinces
+                        .filter(p => p.name.toLowerCase().includes(provinceSearch.toLowerCase()))
+                        .map(p => (
+                          <button key={p.id} type="button"
+                            onClick={() => {
+                              setEditForm(f => ({ ...f, province: p.name, city: '' }));
+                              setShowProvinceDropdown(false);
+                              setCities([]);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                            {p.name}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+                <div className="relative" ref={cityRef}>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Kota / Kabupaten</label>
+                  <div className="relative">
+                    <input
+                      value={showCityDropdown ? citySearch : editForm.city}
+                      onChange={e => { setCitySearch(e.target.value); setShowCityDropdown(true); }}
+                      onFocus={() => { setCitySearch(''); setShowCityDropdown(true); }}
+                      placeholder={!editForm.province ? 'Pilih provinsi dulu' : citiesLoading ? 'Memuat kota...' : 'Cari kota/kabupaten...'}
+                      disabled={!editForm.province || citiesLoading}
+                      className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300 pr-8 disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                    />
+                    <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
+                  {showCityDropdown && cities.length > 0 && (
+                    <div className="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {cities
+                        .filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase()))
+                        .map(c => (
+                          <button key={c.id} type="button"
+                            onClick={() => {
+                              setEditForm(f => ({ ...f, city: c.name }));
+                              setShowCityDropdown(false);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-blue-50 hover:text-blue-700 transition-colors">
+                            {c.name}
+                          </button>
+                        ))}
+                    </div>
+                  )}
                 </div>
                 <div className="md:col-span-2">
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Alamat</label>
