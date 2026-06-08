@@ -40,7 +40,13 @@ export const authApi = {
 
 // UMKM
 export const umkmApi = {
-  list: (params?: Record<string, string | number>) => api.get('/umkm', { params }),
+  list: (params?: Record<string, string | number | undefined>) => api.get('/umkm', { params }),
+  filterOptions: () => api.get<{
+    categories: string[];
+    provinces: string[];
+    programs: Array<{ id: string; name: string }>;
+    docTypes: string[];
+  }>('/umkm/filter-options'),
   me: () => api.get('/umkm/me'),
   updateMe: (data: Record<string, unknown>) => api.put('/umkm/me', data),
   get: (id: string) => api.get(`/umkm/${id}`),
@@ -163,11 +169,27 @@ export const financialApi = {
     api.post(`/financial/${umkmId}`, data),
 };
 
+// Assessment (5S indicator data input by UMKM)
+export const assessmentApi = {
+  getMe: () => api.get('/umkm/me/assessment'),
+  upsertMe: (data: {
+    employeeCount?: number | null;
+    technologyLevel?: string | null;
+    legalStatus?: string | null;
+    marketReach?: string | null;
+    exhibitionScale?: string | null;
+    supplierStatus?: string | null;
+    assetGrowthMillion?: number | null;
+  }) => api.put('/umkm/me/assessment', data),
+  getByUmkm: (id: string) => api.get(`/umkm/${id}/assessment`),
+};
+
 // Analytics
 export const analyticsApi = {
   dashboard: () => api.get('/analytics/dashboard'),
   regional: (regional: string) => api.get(`/analytics/regional/${encodeURIComponent(regional)}`),
   workspace: () => api.get('/analytics/workspace'),
+  workspace5S: () => api.get('/analytics/workspace/5s'),
   revenueTrend: (year?: number, province?: string) =>
     api.get('/analytics/revenue-trend', { params: { year, province } }),
   addFinancial: (data: Record<string, unknown>) => api.post('/analytics/financial', data),
