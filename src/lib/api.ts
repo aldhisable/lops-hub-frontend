@@ -190,6 +190,9 @@ export const analyticsApi = {
   regional: (regional: string) => api.get(`/analytics/regional/${encodeURIComponent(regional)}`),
   workspace: () => api.get('/analytics/workspace'),
   workspace5S: () => api.get('/analytics/workspace/5s'),
+  aggregate5S: () => api.get('/analytics/5s-aggregate'),
+  perUmkm5S: () => api.get('/analytics/5s-per-umkm'),
+  umkm5S: (umkmId: string) => api.get(`/analytics/5s/${umkmId}`),
   revenueTrend: (year?: number, province?: string) =>
     api.get('/analytics/revenue-trend', { params: { year, province } }),
   addFinancial: (data: Record<string, unknown>) => api.post('/analytics/financial', data),

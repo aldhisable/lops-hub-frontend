@@ -11,7 +11,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
-import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile } from '@/lib/api';
+import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile, analyticsApi } from '@/lib/api';
 import { formatCompactRupiah, formatRupiah } from '@/lib/currency';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
@@ -70,12 +70,12 @@ function normalizeProvinceOptions(data: Wilayah[]): Wilayah[] {
   }));
 }
 
-const RADAR_STUB = [
-  { subject: 'Spread', A: 80, fullMark: 100 },
-  { subject: 'Size', A: 75, fullMark: 100 },
-  { subject: 'Sustain', A: 78, fullMark: 100 },
-  { subject: 'Share', A: 72, fullMark: 100 },
-  { subject: 'Supplier', A: 80, fullMark: 100 },
+const RADAR_EMPTY = [
+  { subject: 'Spread', A: 0, fullMark: 100 },
+  { subject: 'Size', A: 0, fullMark: 100 },
+  { subject: 'Sustain', A: 0, fullMark: 100 },
+  { subject: 'Share', A: 0, fullMark: 100 },
+  { subject: 'Supplier', A: 0, fullMark: 100 },
 ];
 
 const CLASS_BADGE: Record<string, string> = {
@@ -158,6 +158,10 @@ export function UMKMProfilePage({ id }: { id?: string }) {
   const [lopsSaving, setLopsSaving] = useState(false);
   const [lopsSaveMsg, setLopsSaveMsg] = useState('');
   const [docFileError, setDocFileError] = useState('');
+
+  // 5S radar (segilima) — computed by backend from input UMK data
+  const [radar5S, setRadar5S] = useState(RADAR_EMPTY);
+  const [radar5STotal, setRadar5STotal] = useState<number | null>(null);
 
   // Edit profile modal state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -293,10 +297,22 @@ export function UMKMProfilePage({ id }: { id?: string }) {
     Promise.all([
       umkmApi.get(id),
       lopsSalesApi.getByUmkm(id),
+      analyticsApi.umkm5S(id).catch(() => null),
     ])
-      .then(([umkmRes, lopsRes]) => {
+      .then(([umkmRes, lopsRes, s5Res]) => {
         setUmkm(umkmRes.data);
         setLopsSales(lopsRes.data);
+        const p = s5Res?.data?.pillars;
+        if (p) {
+          setRadar5S([
+            { subject: 'Spread', A: p.spread.score, fullMark: 100 },
+            { subject: 'Size', A: p.size.score, fullMark: 100 },
+            { subject: 'Sustain', A: p.sustain.score, fullMark: 100 },
+            { subject: 'Share', A: p.share.score, fullMark: 100 },
+            { subject: 'Supplier', A: p.supplier.score, fullMark: 100 },
+          ]);
+          setRadar5STotal(s5Res?.data?.totalScore ?? null);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -575,7 +591,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                 )}
               </div>
             </GlassCard>
-            <RadarChart title="Radar 5S (Klasifikasi)" data={RADAR_STUB} dataKey="A" angleKey="subject" color="#8b5cf6" height={280} className="h-full" />
+            <RadarChart title={radar5STotal !== null ? `Radar 5S (Klasifikasi) — Skor ${radar5STotal}/100` : 'Radar 5S (Klasifikasi)'} data={radar5S} dataKey="A" angleKey="subject" color="#8b5cf6" height={280} className="h-full" />
             <GlassCard className="p-6 flex flex-col">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold text-lg text-slate-900">Produk Unggulan</h3>
