@@ -5,6 +5,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
 import { useWorkspace } from '@/context/workspace-context';
 import { umkmApi } from '@/lib/api';
+import { UMKM_CATEGORIES } from '@/lib/constants';
 
 const CLASS_BADGE: Record<string, string> = {
   PLATINUM: 'bg-blue-50 text-blue-700',
@@ -153,7 +154,14 @@ export default function ProfilUsaha() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">Kategori</label>
-                  <input value={form.category} onChange={e => set('category', e.target.value)} readOnly={!editing} className={inputCls(editing)} />
+                  {editing ? (
+                    <select value={form.category} onChange={e => set('category', e.target.value)} className={inputCls(true)}>
+                      <option value="">Pilih kategori</option>
+                      {UMKM_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  ) : (
+                    <input value={form.category} readOnly className={inputCls(false)} />
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">Tahun Berdiri</label>

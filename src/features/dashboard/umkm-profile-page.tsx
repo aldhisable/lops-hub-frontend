@@ -12,6 +12,7 @@ import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
 import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile, analyticsApi } from '@/lib/api';
+import { UMKM_CATEGORIES } from '@/lib/constants';
 import { formatCompactRupiah, formatRupiah } from '@/lib/currency';
 import { useAuth } from '@/context/auth-context';
 import Link from 'next/link';
@@ -913,8 +914,11 @@ export function UMKMProfilePage({ id }: { id?: string }) {
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Kategori <span className="text-red-500">*</span></label>
-                  <input required value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                  <select required value={editForm.category} onChange={e => setEditForm(f => ({ ...f, category: e.target.value }))}
+                    className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300">
+                    <option value="">Pilih kategori</option>
+                    {UMKM_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="text-xs font-medium text-slate-600 mb-1 block">Tahun Berdiri</label>

@@ -5,6 +5,7 @@ import { ArrowLeft, Save, Loader2, ChevronDown, Search, Eye, EyeOff } from 'luci
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
 import { authApi, umkmApi } from '@/lib/api';
+import { UMKM_CATEGORIES } from '@/lib/constants';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -51,11 +52,7 @@ const PROVINCES: Wilayah[] = [
   { id: '97', name: 'Papua Pegunungan' },
 ];
 
-const KATEGORI = [
-  'Makanan & Minuman', 'Fashion & Tekstil', 'Kerajinan & Souvenir',
-  'Agrikultur & Perkebunan', 'Perikanan & Kelautan', 'Teknologi & Digital',
-  'Jasa & Layanan', 'Perdagangan Umum', 'Lainnya',
-];
+const KATEGORI = UMKM_CATEGORIES;
 
 const KLASIFIKASI = ['PLATINUM', 'GOLD', 'SILVER', 'BRONZE'];
 

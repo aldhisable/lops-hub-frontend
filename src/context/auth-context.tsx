@@ -3,11 +3,20 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authApi, AuthUser } from '@/lib/api';
 
+interface RegisterInput {
+  name: string;
+  umkmName: string;
+  category: string;
+  email: string;
+  password: string;
+}
+
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ redirectTo: string }>;
+  register: (data: RegisterInput) => Promise<{ redirectTo: string }>;
   logout: () => void;
 }
 
@@ -44,6 +53,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { redirectTo };
   };
 
+  const register = async (input: RegisterInput) => {
+    const { data } = await authApi.register({
+      name: input.name,
+      email: input.email,
+      password: input.password,
+      role: 'UMKM',
+      umkmName: input.umkmName,
+      category: input.category,
+    });
+    localStorage.setItem('auth_token', data.token);
+    localStorage.setItem('auth_user', JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+
+    // Pendaftaran mandiri selalu sebagai UMKM → langsung ke workspace
+    return { redirectTo: '/workspace' };
+  };
+
   const logout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
@@ -53,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

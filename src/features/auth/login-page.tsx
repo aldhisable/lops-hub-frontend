@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AuthLayout } from '@/components/layout/auth-layout';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -77,6 +78,11 @@ export function LoginPage() {
             {isLoading ? 'Memproses...' : 'Login Sekarang'}
           </GlowButton>
         </form>
+
+        <p className="text-sm text-slate-500 text-center mt-5">
+          Belum punya akun?{' '}
+          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700">Daftar sebagai UMKM</Link>
+        </p>
 
         <div className="mt-6 pt-5 border-t border-slate-100">
           <p className="text-xs text-slate-400 text-center mb-3">Demo Akun</p>

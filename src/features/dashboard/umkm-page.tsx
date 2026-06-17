@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
 import { umkmApi } from '@/lib/api';
+import { UMKM_CATEGORIES } from '@/lib/constants';
 import Link from 'next/link';
 
 interface UMKMRow {
@@ -253,7 +254,7 @@ function AdvancedFilterPanel({
               <label className="block text-xs font-semibold text-slate-600 mb-1">Kategori Usaha</label>
               <select value={filters.category} onChange={(e) => onChange('category', e.target.value)} className={selectClass}>
                 <option value="">Semua Kategori</option>
-                {options.categories.map((c) => (
+                {UMKM_CATEGORIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
