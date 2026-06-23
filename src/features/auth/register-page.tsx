@@ -95,7 +95,7 @@ export function RegisterPage() {
 
     if (!supabase) return;
     if (otp.trim().length < 6) {
-      setError('Masukkan 6 digit kode OTP.');
+      setError('Masukkan kode OTP dari email Anda.');
       return;
     }
 
@@ -144,7 +144,7 @@ export function RegisterPage() {
           <p className="text-slate-500 text-sm mt-2">
             {phase === 'form'
               ? 'Buat akun untuk mengelola usaha Anda di LOPs Hub'
-              : `Masukkan 6 digit kode yang kami kirim ke ${email}`}
+              : `Masukkan kode yang kami kirim ke ${email}`}
           </p>
         </div>
 
@@ -207,12 +207,12 @@ export function RegisterPage() {
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
-                maxLength={6}
+                maxLength={10}
                 required
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                className={`${inputCls} text-center text-lg tracking-[0.5em] font-semibold`}
-                placeholder="••••••"
+                className={`${inputCls} text-center text-lg tracking-[0.4em] font-semibold`}
+                placeholder="Masukkan kode dari email"
               />
             </div>
 
