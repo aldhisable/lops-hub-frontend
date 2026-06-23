@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react'
-import { Bell, Search, HelpCircle, ChevronDown, Menu, LogOut, User } from 'lucide-react'
+import { Bell, Search, HelpCircle, ChevronDown, Menu, LogOut, User, Mail, Info } from 'lucide-react'
 import { useLayout } from '@/context/layout-context'
 import { useAuth } from '@/context/auth-context'
 
@@ -20,7 +20,11 @@ const ROLE_LABEL: Record<string, string> = {
 export function TopBar({ searchPlaceholder = "Cari UMKM, wilayah, kategori, program...", userName, userRole }: TopBarProps) {
   const { user: authUser, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const helpRef = useRef<HTMLDivElement>(null);
 
   const displayName = userName ?? authUser?.name ?? 'Pengguna';
   const displayRole = userRole ?? (authUser ? ROLE_LABEL[authUser.role] ?? authUser.role : 'Guest');
@@ -29,9 +33,10 @@ export function TopBar({ searchPlaceholder = "Cari UMKM, wilayah, kategori, prog
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
+      const t = e.target as Node;
+      if (dropdownRef.current && !dropdownRef.current.contains(t)) setDropdownOpen(false);
+      if (notifRef.current && !notifRef.current.contains(t)) setNotifOpen(false);
+      if (helpRef.current && !helpRef.current.contains(t)) setHelpOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -67,13 +72,50 @@ export function TopBar({ searchPlaceholder = "Cari UMKM, wilayah, kategori, prog
       </div>
 
       <div className="flex items-center gap-4">
-        <button aria-label="Notifications" className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors rounded-full hover:bg-slate-50" title="Notifications" type="button">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-        </button>
-        <button aria-label="Help" className="p-2 text-slate-400 hover:text-slate-600 transition-colors rounded-full hover:bg-slate-50" title="Help" type="button">
-          <HelpCircle className="w-5 h-5" />
-        </button>
+        {/* Notifications */}
+        <div className="relative" ref={notifRef}>
+          <button
+            onClick={() => { setNotifOpen(o => !o); setHelpOpen(false); setDropdownOpen(false); }}
+            aria-label="Notifications" className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors rounded-full hover:bg-slate-50" title="Notifikasi" type="button"
+          >
+            <Bell className="w-5 h-5" />
+          </button>
+          {notifOpen && (
+            <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-100 rounded-xl shadow-lg shadow-slate-200/60 py-1 z-50">
+              <div className="px-4 py-3 border-b border-slate-50">
+                <p className="text-sm font-semibold text-slate-900">Notifikasi</p>
+              </div>
+              <div className="px-4 py-8 text-center">
+                <Bell className="w-7 h-7 mx-auto mb-2 text-slate-300" />
+                <p className="text-sm text-slate-400">Belum ada notifikasi</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Help */}
+        <div className="relative" ref={helpRef}>
+          <button
+            onClick={() => { setHelpOpen(o => !o); setNotifOpen(false); setDropdownOpen(false); }}
+            aria-label="Help" className="p-2 text-slate-400 hover:text-slate-600 transition-colors rounded-full hover:bg-slate-50" title="Bantuan" type="button"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
+          {helpOpen && (
+            <div className="absolute right-0 mt-2 w-64 bg-white border border-slate-100 rounded-xl shadow-lg shadow-slate-200/60 py-1 z-50">
+              <div className="px-4 py-3 border-b border-slate-50">
+                <p className="text-sm font-semibold text-slate-900">Bantuan</p>
+                <p className="text-xs text-slate-500 mt-0.5">Local Pride Spot — Intelligence &amp; Growth Platform</p>
+              </div>
+              <a href="mailto:pelindopeduli@gmail.com" className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                <Mail className="w-4 h-4 text-slate-400" /> Hubungi Admin
+              </a>
+              <a href="/" className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                <Info className="w-4 h-4 text-slate-400" /> Tentang LOPs Hub
+              </a>
+            </div>
+          )}
+        </div>
         
         <div className="h-8 w-px bg-slate-200 mx-2"></div>
         
