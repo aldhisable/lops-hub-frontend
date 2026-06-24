@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, ShoppingBag, Folders, FileText,
-  TrendingUp, PieChart, Map, Image, Settings, UserCircle
+  TrendingUp, PieChart, Map, Settings, UserCircle
 } from 'lucide-react';
 import type { SidebarNavItem } from '@/components/layout/sidebar-nav';
 
@@ -27,7 +27,6 @@ export const umkmMainNavItems: SidebarNavItem[] = [
   { label: 'Omzet & Growth', icon: TrendingUp, href: '/workspace/omzet' },
   { label: 'Analytics', icon: PieChart, href: '/workspace/analytics' },
   { label: 'Laporan', icon: FileText, href: '/workspace/laporan' },
-  { label: 'Media & Galeri', icon: Image, href: '/workspace/media' },
 ];
 
 export const umkmSupportNavItems: SidebarNavItem[] = [
