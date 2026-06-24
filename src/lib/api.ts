@@ -36,6 +36,9 @@ export const authApi = {
   register: (data: { name: string; email: string; password: string; role: string; regional?: string; umkmName?: string; category?: string }) =>
     api.post<{ token: string; user: AuthUser }>('/auth/register', data),
   me: () => api.get<AuthUser>('/auth/me'),
+  updateAccount: (data: { name: string }) => api.patch<AuthUser>('/auth/me', data),
+  changePassword: (oldPassword: string, newPassword: string) =>
+    api.post<{ message: string }>('/auth/change-password', { oldPassword, newPassword }),
 };
 
 // UMKM

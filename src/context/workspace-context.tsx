@@ -40,6 +40,7 @@ export interface WorkspaceUMKM {
   instagram?: string | null;
   website?: string | null;
   description?: string | null;
+  logoUrl?: string | null;
   classification: string;
   status: string;
   products: ProductData[];

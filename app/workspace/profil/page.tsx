@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from 'react';
-import { Edit3, CheckCircle2, Phone, AtSign, Globe, Save, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Edit3, CheckCircle2, Phone, AtSign, Globe, Save, Loader2, Camera } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
 import { useWorkspace } from '@/context/workspace-context';
@@ -26,6 +26,9 @@ export default function ProfilUsaha() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [logoErr, setLogoErr] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: '', category: '', establishedYear: '',
     city: '', province: '', address: '', description: '', phone: '', instagram: '', website: '',
@@ -49,6 +52,24 @@ export default function ProfilUsaha() {
   }, [umkm]);
 
   const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !umkm) return;
+    setLogoErr('');
+    if (file.size > 2 * 1024 * 1024) { setLogoErr('Ukuran foto maksimal 2MB.'); return; }
+    setUploadingLogo(true);
+    try {
+      const url = await umkmApi.uploadProductImage(umkm.id, file);
+      await umkmApi.updateMe({ logoUrl: url });
+      refetch();
+    } catch {
+      setLogoErr('Gagal mengunggah foto. Coba lagi.');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,12 +134,28 @@ export default function ProfilUsaha() {
         {/* Left card */}
         <div className="lg:col-span-4">
           <GlassCard className="p-6 text-center">
-            <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center mx-auto border border-teal-300/50">
-              <div className="text-teal-800 font-extrabold text-lg">
-                {umkm ? getInitials(umkm.name) : '—'}
+            <div className="relative w-24 h-24 mx-auto group">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center border border-teal-300/50">
+                {umkm?.logoUrl ? (
+                  <img src={umkm.logoUrl} alt={umkm.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-teal-800 font-extrabold text-lg">{umkm ? getInitials(umkm.name) : '—'}</div>
+                )}
               </div>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploadingLogo || !umkm}
+                title="Ganti foto"
+                className="absolute -bottom-2 -right-2 w-9 h-9 rounded-full bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60"
+              >
+                {uploadingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+              </button>
+              <input ref={fileRef} type="file" accept="image/png,image/jpeg" onChange={handleLogoChange} className="hidden" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mt-4 flex items-center justify-center gap-2">
+            <p className="text-xs text-slate-400 mt-3">JPG, PNG. Maks 2MB</p>
+            {logoErr && <p className="text-xs text-red-500 mt-1">{logoErr}</p>}
+            <h3 className="text-lg font-bold text-slate-900 mt-3 flex items-center justify-center gap-2">
               {umkm?.name ?? '—'} <CheckCircle2 className="w-4 h-4 text-blue-500" />
             </h3>
             <div className="flex justify-center gap-2 mt-3">
