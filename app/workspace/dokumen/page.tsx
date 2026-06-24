@@ -4,6 +4,7 @@ import { Upload, Eye, Download, Trash2, FileText, X, Loader2, AlertTriangle } fr
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
 import { documentsApi, openDocumentFile } from '@/lib/api';
+import { DOCUMENT_TYPES } from '@/lib/constants';
 
 interface Document {
   id: string;
@@ -15,11 +16,7 @@ interface Document {
   uploadedAt: string;
 }
 
-const DOC_TYPES = [
-  'NIB (Nomor Induk Berusaha)', 'NPWP Usaha', 'SIUP / Izin Usaha',
-  'Sertifikat Halal MUI', 'BPOM MD Registration', 'Sertifikat SNI',
-  'Laporan Keuangan', 'Sertifikat Pelatihan', 'Dokumen Legalitas Lainnya',
-];
+const DOC_TYPES = DOCUMENT_TYPES;
 
 const STATUS_STYLE: Record<string, string> = {
   PENDING: 'bg-amber-50 text-amber-700',

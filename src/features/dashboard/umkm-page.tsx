@@ -8,7 +8,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
 import { umkmApi } from '@/lib/api';
-import { UMKM_CATEGORIES } from '@/lib/constants';
+import { UMKM_CATEGORIES, DOCUMENT_TYPES } from '@/lib/constants';
 import Link from 'next/link';
 
 interface UMKMRow {
@@ -307,7 +307,7 @@ function AdvancedFilterPanel({
               <label className="block text-xs font-semibold text-slate-600 mb-1">Sertifikat / Dokumen</label>
               <select value={filters.docType} onChange={(e) => onChange('docType', e.target.value)} className={selectClass}>
                 <option value="">Semua Dokumen</option>
-                {options.docTypes.map((d) => (
+                {DOCUMENT_TYPES.map((d) => (
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
