@@ -95,6 +95,7 @@ export const programsApi = {
   join: (umkmId: string, programId: string) => api.post('/programs/join', { umkmId, programId }),
   updateParticipantStatus: (participantId: string, status: 'REGISTERED' | 'REJECTED') =>
     api.patch(`/programs/participants/${participantId}/status`, { status }),
+  removeParticipant: (participantId: string) => api.delete(`/programs/participants/${participantId}`),
 };
 
 // Documents

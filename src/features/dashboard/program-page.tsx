@@ -65,7 +65,7 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function ProgramMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () => void }) {
+function ProgramMenu({ onManage, onEdit, onDelete }: { onManage: () => void; onEdit: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -85,7 +85,13 @@ function ProgramMenu({ onEdit, onDelete }: { onEdit: () => void; onDelete: () =>
         <MoreHorizontal className="w-4 h-4" />
       </button>
       {open && (
-        <div className="absolute right-0 top-8 z-20 w-36 bg-white border border-slate-100 rounded-xl shadow-lg py-1 text-sm">
+        <div className="absolute right-0 top-8 z-20 w-44 bg-white border border-slate-100 rounded-xl shadow-lg py-1 text-sm">
+          <button
+            onClick={e => { e.stopPropagation(); setOpen(false); onManage(); }}
+            className="w-full flex items-center gap-2 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            <Users className="w-4 h-4 text-emerald-500" /> Kelola Peserta
+          </button>
           <button
             onClick={e => { e.stopPropagation(); setOpen(false); onEdit(); }}
             className="w-full flex items-center gap-2 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors"
@@ -130,6 +136,20 @@ function ParticipantsModal({ program, onClose, onChanged }: { program: Program; 
       onChanged();
     } catch {
       alert('Gagal memperbarui status pendaftar.');
+    } finally {
+      setActing(null);
+    }
+  };
+
+  const remove = async (p: Participant) => {
+    if (!confirm(`Keluarkan "${p.umkm.name}" dari program ini? Tindakan ini tidak bisa dibatalkan.`)) return;
+    setActing(p.id);
+    try {
+      await programsApi.removeParticipant(p.id);
+      setParticipants(prev => prev.filter(x => x.id !== p.id));
+      onChanged();
+    } catch {
+      alert('Gagal mengeluarkan peserta.');
     } finally {
       setActing(null);
     }
@@ -183,6 +203,14 @@ function ParticipantsModal({ program, onClose, onChanged }: { program: Program; 
                       >
                         <X className="w-3.5 h-3.5" /> Tolak
                       </button>
+                      <button
+                        onClick={() => remove(p)}
+                        disabled={acting === p.id}
+                        title="Keluarkan dari program"
+                        className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-red-600 transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -201,6 +229,14 @@ function ParticipantsModal({ program, onClose, onChanged }: { program: Program; 
                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${PART_COLOR[p.status] ?? 'bg-slate-100 text-slate-500'}`}>
                           {PART_LABEL[p.status] ?? p.status}
                         </span>
+                        <button
+                          onClick={() => remove(p)}
+                          disabled={acting === p.id}
+                          title="Keluarkan dari program"
+                          className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-red-600 transition-colors disabled:opacity-50"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -342,7 +378,7 @@ export function ProgramPage() {
                       </span>
                     )}
                   </div>
-                  <ProgramMenu onEdit={() => openEdit(prog)} onDelete={() => handleDelete(prog.id, prog.name)} />
+                  <ProgramMenu onManage={() => setManageTarget(prog)} onEdit={() => openEdit(prog)} onDelete={() => handleDelete(prog.id, prog.name)} />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{prog.name}</h3>
                 <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
