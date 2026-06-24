@@ -160,7 +160,7 @@ function ParticipantsModal({ program, onClose, onChanged }: { program: Program; 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={onClose}>
-      <GlassCard className="w-full max-w-lg p-8 relative max-h-[85vh] overflow-y-auto" >
+      <GlassCard className="glass-modal w-full max-w-lg p-8 relative max-h-[85vh] overflow-y-auto" >
         <div onClick={e => e.stopPropagation()}>
           <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-lg text-slate-400">
             <X className="w-5 h-5" />
@@ -401,7 +401,7 @@ export function ProgramPage() {
       {/* Modal Tambah / Edit Program */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <GlassCard className="w-full max-w-lg p-8 relative">
+          <GlassCard className="glass-modal w-full max-w-lg p-8 relative">
             <button onClick={closeModal} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-lg text-slate-400">
               <X className="w-5 h-5" />
             </button>
