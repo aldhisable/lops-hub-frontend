@@ -93,6 +93,8 @@ export const programsApi = {
     api.put(`/programs/${id}`, data),
   delete: (id: string) => api.delete(`/programs/${id}`),
   join: (umkmId: string, programId: string) => api.post('/programs/join', { umkmId, programId }),
+  updateParticipantStatus: (participantId: string, status: 'REGISTERED' | 'REJECTED') =>
+    api.patch(`/programs/participants/${participantId}/status`, { status }),
 };
 
 // Documents

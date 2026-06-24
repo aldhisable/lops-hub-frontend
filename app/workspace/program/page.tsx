@@ -17,7 +17,9 @@ const PROG_STATUS: Record<string, { label: string; color: string }> = {
 };
 
 const PART_STATUS: Record<string, { label: string; color: string }> = {
+  PENDING:     { label: 'Menunggu Persetujuan', color: 'text-amber-600' },
   REGISTERED:  { label: 'Terdaftar',         color: 'text-slate-500' },
+  REJECTED:    { label: 'Ditolak',           color: 'text-red-600' },
   IN_PROGRESS: { label: 'Sedang Berlangsung', color: 'text-blue-600' },
   GRADUATED:   { label: 'Lulus',              color: 'text-emerald-600' },
   INACTIVE:    { label: 'Tidak Aktif',        color: 'text-slate-400' },
@@ -41,6 +43,7 @@ export default function ProgramSaya() {
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [joining, setJoining] = useState<string | null>(null);
   const [joinError, setJoinError] = useState('');
+  const [joinSuccess, setJoinSuccess] = useState('');
   const [detail, setDetail] = useState<ProgramDetail | null>(null);
 
   useEffect(() => {
@@ -57,8 +60,10 @@ export default function ProgramSaya() {
     if (!umkm) return;
     setJoining(programId);
     setJoinError('');
+    setJoinSuccess('');
     try {
       await programsApi.join(umkm.id, programId);
+      setJoinSuccess('Pendaftaran terkirim. Menunggu persetujuan admin.');
       refetch();
     } catch (err: any) {
       setJoinError(err.response?.data?.error || 'Gagal mendaftar program.');
@@ -73,6 +78,12 @@ export default function ProgramSaya() {
         <h1 className="text-2xl font-bold text-slate-900">Program Saya</h1>
         <p className="text-slate-500 mt-1">Program pembinaan yang sedang dan telah Anda ikuti</p>
       </div>
+
+      {joinSuccess && (
+        <div className="mb-6 p-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-sm flex items-center gap-2">
+          <Clock className="w-4 h-4 shrink-0" />{joinSuccess}
+        </div>
+      )}
 
       {loading ? (
         <GlassCard className="p-12 flex items-center justify-center text-slate-400">Memuat program...</GlassCard>
