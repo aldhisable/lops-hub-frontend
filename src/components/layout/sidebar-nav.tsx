@@ -39,34 +39,45 @@ export function SidebarNav({
   activePath = '/dashboard',
   lockExceptHref,
 }: SidebarNavProps) {
-  const { closeMobileSidebar } = useLayout();
+  const { closeMobileSidebar, isSidebarCollapsed, toggleSidebarCollapsed } = useLayout();
 
   return (
-    <aside className="w-[280px] bg-white border-r border-slate-100 flex flex-col h-full overflow-y-auto">
-      <div className="p-6 flex items-center gap-3">
+    <aside className={cn(
+      'bg-white border-r border-slate-100 flex flex-col h-full overflow-y-auto overflow-x-hidden transition-all duration-300',
+      isSidebarCollapsed ? 'w-20' : 'w-[280px]'
+    )}>
+      <div className={cn('p-6 flex items-center gap-3', isSidebarCollapsed && 'justify-center px-0')}>
         <div className="w-10 h-10 rounded-full overflow-hidden shadow-lg shadow-blue-500/30 shrink-0">
           <img src="/logo.png" alt="LOPs Hub" className="w-full h-full object-cover" />
         </div>
-        <div>
-          <strong className="block text-slate-900 font-bold text-lg leading-tight">{brand.name}</strong>
-          <span className="text-xs text-blue-600 font-medium tracking-wide">{brand.descriptor}</span>
-        </div>
+        {!isSidebarCollapsed && (
+          <div>
+            <strong className="block text-slate-900 font-bold text-lg leading-tight">{brand.name}</strong>
+            <span className="text-xs text-blue-600 font-medium tracking-wide">{brand.descriptor}</span>
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 px-4 py-2 flex flex-col gap-1">
-        <NavList activePath={activePath} items={items} onClose={closeMobileSidebar} lockExceptHref={lockExceptHref} />
+      <div className={cn('flex-1 py-2 flex flex-col gap-1', isSidebarCollapsed ? 'px-2' : 'px-4')}>
+        <NavList activePath={activePath} items={items} onClose={closeMobileSidebar} lockExceptHref={lockExceptHref} collapsed={isSidebarCollapsed} />
       </div>
 
-      <div className="p-4 mt-auto">
+      <div className={cn('mt-auto', isSidebarCollapsed ? 'p-2' : 'p-4')}>
         {supportItems.length > 0 && (
           <div className="border-t border-slate-100 pt-4">
-             <NavList activePath={activePath} items={supportItems} onClose={closeMobileSidebar} lockExceptHref={lockExceptHref} />
+             <NavList activePath={activePath} items={supportItems} onClose={closeMobileSidebar} lockExceptHref={lockExceptHref} collapsed={isSidebarCollapsed} />
           </div>
         )}
 
-        <button className="flex items-center gap-2 text-slate-400 hover:text-slate-600 text-sm font-medium p-4 mt-2 transition-colors w-full">
-          <ChevronLeft className="w-4 h-4" />
-          Collapse
+        <button
+          onClick={toggleSidebarCollapsed}
+          title={isSidebarCollapsed ? 'Perluas sidebar' : 'Ciutkan sidebar'}
+          className={cn(
+            'flex items-center gap-2 text-slate-400 hover:text-slate-600 text-sm font-medium mt-2 transition-colors w-full rounded-xl hover:bg-slate-50',
+            isSidebarCollapsed ? 'justify-center p-3' : 'p-4'
+          )}
+        >
+          {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <><ChevronLeft className="w-4 h-4" /> Collapse</>}
         </button>
       </div>
     </aside>
@@ -78,11 +89,13 @@ function NavList({
   items,
   onClose,
   lockExceptHref,
+  collapsed = false,
 }: {
   activePath: string
   items: SidebarNavItem[]
   onClose?: () => void
   lockExceptHref?: string
+  collapsed?: boolean
 }) {
   return (
     <nav className="flex flex-col gap-1">
@@ -93,34 +106,55 @@ function NavList({
           activePath={activePath}
           onClose={onClose}
           locked={!!lockExceptHref && item.href !== lockExceptHref}
+          collapsed={collapsed}
         />
       ))}
     </nav>
   )
 }
 
-function NavItem({ item, activePath, onClose, locked = false }: { item: SidebarNavItem; activePath: string; onClose?: () => void; locked?: boolean }) {
+function NavItem({ item, activePath, onClose, locked = false, collapsed = false }: { item: SidebarNavItem; activePath: string; onClose?: () => void; locked?: boolean; collapsed?: boolean }) {
   const Icon = item.icon
-  const hasChildren = item.children && item.children.length > 0
+  const hasChildren = !!item.children && item.children.length > 0
+  const isActive = activePath === item.href || (item.href !== '/dashboard' && activePath.startsWith(item.href))
+  const isChildActive = hasChildren && item.children!.some(c => activePath === c.href || activePath.startsWith(c.href))
 
+  // Hook must run unconditionally (before any early return)
+  const [expanded, setExpanded] = useState(isActive || isChildActive)
+
+  // Locked (UMKM awaiting verification) — render non-clickable
   if (locked) {
     return (
       <div
         aria-disabled="true"
         title="Tersedia setelah akun Anda diverifikasi admin"
-        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 cursor-not-allowed select-none"
+        className={cn(
+          'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 cursor-not-allowed select-none',
+          collapsed && 'justify-center px-0'
+        )}
       >
         <Icon className="w-5 h-5 text-slate-300" />
-        <span className="flex-1">{item.label}</span>
-        <Lock className="w-3.5 h-3.5 text-slate-300" />
+        {!collapsed && <><span className="flex-1">{item.label}</span><Lock className="w-3.5 h-3.5 text-slate-300" /></>}
       </div>
     )
   }
-  const isActive = activePath === item.href || (item.href !== '/dashboard' && activePath.startsWith(item.href))
-  const isChildActive = hasChildren && item.children!.some(c => activePath === c.href || activePath.startsWith(c.href))
-  const shouldExpand = isActive || isChildActive
 
-  const [expanded, setExpanded] = useState(shouldExpand)
+  // Collapsed rail — icon-only link (submenus flatten to the parent route)
+  if (collapsed) {
+    return (
+      <Link
+        href={item.href}
+        onClick={onClose}
+        title={item.label}
+        className={cn(
+          'flex items-center justify-center p-3 rounded-xl transition-colors',
+          (isActive || isChildActive) ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+        )}
+      >
+        <Icon className={cn('w-5 h-5', (isActive || isChildActive) ? 'text-blue-600' : 'text-slate-400')} />
+      </Link>
+    )
+  }
 
   if (hasChildren) {
     return (
@@ -178,7 +212,6 @@ function NavItem({ item, activePath, onClose, locked = false }: { item: SidebarN
     >
       <Icon className={cn("w-5 h-5 transition-colors", isActive ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600")} />
       {item.label}
-      {/* Show chevron for items that could have sub-pages */}
     </Link>
   )
 }
