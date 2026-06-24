@@ -28,7 +28,7 @@ export default function ProfilUsaha() {
   const [successMsg, setSuccessMsg] = useState('');
   const [form, setForm] = useState({
     name: '', category: '', establishedYear: '',
-    address: '', description: '', phone: '', instagram: '', website: '',
+    city: '', province: '', address: '', description: '', phone: '', instagram: '', website: '',
   });
 
   useEffect(() => {
@@ -37,6 +37,8 @@ export default function ProfilUsaha() {
         name: umkm.name ?? '',
         category: umkm.category ?? '',
         establishedYear: umkm.establishedYear ? String(umkm.establishedYear) : '',
+        city: umkm.city ?? '',
+        province: umkm.province ?? '',
         address: umkm.address ?? '',
         description: umkm.description ?? '',
         phone: umkm.phone ?? '',
@@ -57,6 +59,8 @@ export default function ProfilUsaha() {
         name: form.name,
         category: form.category,
         establishedYear: form.establishedYear ? parseInt(form.establishedYear) : undefined,
+        city: form.city || undefined,
+        province: form.province || undefined,
         address: form.address || undefined,
         description: form.description || undefined,
         phone: form.phone || undefined,
@@ -118,8 +122,14 @@ export default function ProfilUsaha() {
               {umkm?.name ?? '—'} <CheckCircle2 className="w-4 h-4 text-blue-500" />
             </h3>
             <div className="flex justify-center gap-2 mt-3">
-              <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold">
-                {umkm?.status === 'ACTIVE' ? 'Aktif' : umkm?.status ?? '—'}
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                umkm?.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700'
+                  : umkm?.status === 'PENDING' ? 'bg-amber-50 text-amber-700'
+                  : 'bg-slate-100 text-slate-600'
+              }`}>
+                {umkm?.status === 'ACTIVE' ? 'Aktif'
+                  : umkm?.status === 'PENDING' ? 'Menunggu Verifikasi'
+                  : umkm?.status ?? '—'}
               </span>
               <span className={`px-3 py-1 rounded-full text-xs font-semibold ${CLASS_BADGE[umkm?.classification ?? ''] ?? 'bg-slate-100 text-slate-600'}`}>
                 {CLASS_LABEL[umkm?.classification ?? ''] ?? umkm?.classification ?? '—'}
@@ -179,6 +189,14 @@ export default function ProfilUsaha() {
                   <label className="text-sm font-medium text-slate-700">Website</label>
                   <input value={form.website} onChange={e => set('website', e.target.value)} readOnly={!editing} className={inputCls(editing)} placeholder={editing ? 'contoh.com' : '—'} />
                 </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-700">Kota</label>
+                  <input value={form.city} onChange={e => set('city', e.target.value)} readOnly={!editing} className={inputCls(editing)} placeholder={editing ? 'contoh: Surabaya' : '—'} />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-slate-700">Provinsi</label>
+                  <input value={form.province} onChange={e => set('province', e.target.value)} readOnly={!editing} className={inputCls(editing)} placeholder={editing ? 'contoh: Jawa Timur' : '—'} />
+                </div>
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-slate-700">Alamat</label>
@@ -192,7 +210,7 @@ export default function ProfilUsaha() {
                 <div className="flex gap-3 justify-end pt-2">
                   <button
                     type="button"
-                    onClick={() => { setEditing(false); if (umkm) setForm({ name: umkm.name, category: umkm.category, establishedYear: umkm.establishedYear ? String(umkm.establishedYear) : '', address: umkm.address ?? '', description: umkm.description ?? '', phone: umkm.phone ?? '', instagram: umkm.instagram ?? '', website: umkm.website ?? '' }); }}
+                    onClick={() => { setEditing(false); if (umkm) setForm({ name: umkm.name, category: umkm.category, establishedYear: umkm.establishedYear ? String(umkm.establishedYear) : '', city: umkm.city ?? '', province: umkm.province ?? '', address: umkm.address ?? '', description: umkm.description ?? '', phone: umkm.phone ?? '', instagram: umkm.instagram ?? '', website: umkm.website ?? '' }); }}
                     className="px-5 py-2.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
                   >
                     Batal

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { ChevronLeft, ChevronDown, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronDown, ChevronRight, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { useLayout } from '@/context/layout-context'
@@ -28,6 +28,8 @@ type SidebarNavProps = {
   items: SidebarNavItem[]
   supportItems?: SidebarNavItem[]
   activePath?: string
+  /** When set, every item except this href is locked (non-clickable). Used while a UMKM awaits verification. */
+  lockExceptHref?: string
 }
 
 export function SidebarNav({
@@ -35,6 +37,7 @@ export function SidebarNav({
   items,
   supportItems = [],
   activePath = '/dashboard',
+  lockExceptHref,
 }: SidebarNavProps) {
   const { closeMobileSidebar } = useLayout();
 
@@ -51,13 +54,13 @@ export function SidebarNav({
       </div>
 
       <div className="flex-1 px-4 py-2 flex flex-col gap-1">
-        <NavList activePath={activePath} items={items} onClose={closeMobileSidebar} />
+        <NavList activePath={activePath} items={items} onClose={closeMobileSidebar} lockExceptHref={lockExceptHref} />
       </div>
 
       <div className="p-4 mt-auto">
         {supportItems.length > 0 && (
           <div className="border-t border-slate-100 pt-4">
-             <NavList activePath={activePath} items={supportItems} onClose={closeMobileSidebar} />
+             <NavList activePath={activePath} items={supportItems} onClose={closeMobileSidebar} lockExceptHref={lockExceptHref} />
           </div>
         )}
 
@@ -74,23 +77,45 @@ function NavList({
   activePath,
   items,
   onClose,
+  lockExceptHref,
 }: {
   activePath: string
   items: SidebarNavItem[]
   onClose?: () => void
+  lockExceptHref?: string
 }) {
   return (
     <nav className="flex flex-col gap-1">
       {items.map((item) => (
-        <NavItem key={item.label} item={item} activePath={activePath} onClose={onClose} />
+        <NavItem
+          key={item.label}
+          item={item}
+          activePath={activePath}
+          onClose={onClose}
+          locked={!!lockExceptHref && item.href !== lockExceptHref}
+        />
       ))}
     </nav>
   )
 }
 
-function NavItem({ item, activePath, onClose }: { item: SidebarNavItem; activePath: string; onClose?: () => void }) {
+function NavItem({ item, activePath, onClose, locked = false }: { item: SidebarNavItem; activePath: string; onClose?: () => void; locked?: boolean }) {
   const Icon = item.icon
   const hasChildren = item.children && item.children.length > 0
+
+  if (locked) {
+    return (
+      <div
+        aria-disabled="true"
+        title="Tersedia setelah akun Anda diverifikasi admin"
+        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-300 cursor-not-allowed select-none"
+      >
+        <Icon className="w-5 h-5 text-slate-300" />
+        <span className="flex-1">{item.label}</span>
+        <Lock className="w-3.5 h-3.5 text-slate-300" />
+      </div>
+    )
+  }
   const isActive = activePath === item.href || (item.href !== '/dashboard' && activePath.startsWith(item.href))
   const isChildActive = hasChildren && item.children!.some(c => activePath === c.href || activePath.startsWith(c.href))
   const shouldExpand = isActive || isChildActive
