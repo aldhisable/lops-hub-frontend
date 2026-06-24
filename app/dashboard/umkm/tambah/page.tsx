@@ -1,143 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Save, Loader2, ChevronDown, Search, Eye, EyeOff } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Save, Loader2, Eye, EyeOff } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
+import { WilayahPicker } from '@/components/ui/wilayah-select';
 import { authApi, umkmApi } from '@/lib/api';
 import { UMKM_CATEGORIES } from '@/lib/constants';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
-interface Wilayah { id: string; name: string; }
-
-const PROVINCES: Wilayah[] = [
-  { id: '11', name: 'Aceh' },
-  { id: '12', name: 'Sumatera Utara' },
-  { id: '13', name: 'Sumatera Barat' },
-  { id: '14', name: 'Riau' },
-  { id: '15', name: 'Jambi' },
-  { id: '16', name: 'Sumatera Selatan' },
-  { id: '17', name: 'Bengkulu' },
-  { id: '18', name: 'Lampung' },
-  { id: '19', name: 'Kepulauan Bangka Belitung' },
-  { id: '21', name: 'Kepulauan Riau' },
-  { id: '31', name: 'DKI Jakarta' },
-  { id: '32', name: 'Jawa Barat' },
-  { id: '33', name: 'Jawa Tengah' },
-  { id: '34', name: 'DI Yogyakarta' },
-  { id: '35', name: 'Jawa Timur' },
-  { id: '36', name: 'Banten' },
-  { id: '51', name: 'Bali' },
-  { id: '52', name: 'Nusa Tenggara Barat' },
-  { id: '53', name: 'Nusa Tenggara Timur' },
-  { id: '61', name: 'Kalimantan Barat' },
-  { id: '62', name: 'Kalimantan Tengah' },
-  { id: '63', name: 'Kalimantan Selatan' },
-  { id: '64', name: 'Kalimantan Timur' },
-  { id: '65', name: 'Kalimantan Utara' },
-  { id: '71', name: 'Sulawesi Utara' },
-  { id: '72', name: 'Sulawesi Tengah' },
-  { id: '73', name: 'Sulawesi Selatan' },
-  { id: '74', name: 'Sulawesi Tenggara' },
-  { id: '75', name: 'Gorontalo' },
-  { id: '76', name: 'Sulawesi Barat' },
-  { id: '81', name: 'Maluku' },
-  { id: '82', name: 'Maluku Utara' },
-  { id: '91', name: 'Papua Barat' },
-  { id: '92', name: 'Papua Barat Daya' },
-  { id: '94', name: 'Papua' },
-  { id: '95', name: 'Papua Selatan' },
-  { id: '96', name: 'Papua Tengah' },
-  { id: '97', name: 'Papua Pegunungan' },
-];
-
 const KATEGORI = UMKM_CATEGORIES;
 
 const KLASIFIKASI = ['PLATINUM', 'GOLD', 'SILVER', 'BRONZE'];
-
-function SearchableSelect({ options, value, onChange, placeholder, disabled = false }: {
-  options: Wilayah[];
-  value: string;
-  onChange: (opt: Wilayah) => void;
-  placeholder?: string;
-  disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const selected = options.find(o => o.name === value);
-  const filtered = options.filter(o => o.name.toLowerCase().includes(query.toLowerCase()));
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open]);
-
-  const handleOpen = () => {
-    if (disabled) return;
-    setQuery('');
-    setOpen(true);
-    setTimeout(() => inputRef.current?.focus(), 0);
-  };
-
-  const handleSelect = (opt: Wilayah) => {
-    onChange(opt);
-    setOpen(false);
-    setQuery('');
-  };
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={handleOpen}
-        disabled={disabled}
-        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${selected ? 'text-slate-900' : 'text-slate-400'}`}
-      >
-        <span className="truncate">{selected ? selected.name : placeholder}</span>
-        <ChevronDown className={`w-4 h-4 text-slate-400 flex-shrink-0 ml-2 transition-transform ${open ? 'rotate-180' : ''}`} />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden">
-          <div className="p-2 border-b border-slate-100">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={e => setQuery(e.target.value)}
-                placeholder="Cari..."
-                className="w-full pl-8 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-              />
-            </div>
-          </div>
-          <ul className="max-h-52 overflow-y-auto">
-            {filtered.length === 0 ? (
-              <li className="px-4 py-3 text-sm text-slate-400 text-center">Tidak ditemukan</li>
-            ) : filtered.map(opt => (
-              <li
-                key={opt.id}
-                onClick={() => handleSelect(opt)}
-                className={`px-4 py-2.5 text-sm cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors ${opt.name === value ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700'}`}
-              >
-                {opt.name}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function TambahUMKM() {
   const router = useRouter();
@@ -146,39 +21,16 @@ export default function TambahUMKM() {
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Wilayah
-  const [cities, setCities] = useState<Wilayah[]>([]);
-  const [loadingCities, setLoadingCities] = useState(false);
-
   // Form fields
   const [form, setForm] = useState({
     // Akun login owner
     ownerName: '', email: '', password: '',
     // Data UMKM
     name: '', category: '', establishedYear: '',
-    provinceId: '', provinceName: '', city: '',
+    province: '', city: '', district: '', village: '',
     address: '', phone: '', instagram: '', website: '',
     description: '', classification: 'BRONZE',
   });
-
-  useEffect(() => {
-    if (!form.provinceId) { setCities([]); return; }
-    setLoadingCities(true);
-    const emsifa = `https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${form.provinceId}.json`;
-    const ibnux = `https://ibnux.github.io/data-indonesia/kabupaten/${form.provinceId}.json`;
-    fetch(emsifa)
-      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then((data: Wilayah[]) => setCities(data))
-      .catch(() =>
-        fetch(ibnux)
-          .then(r => r.json())
-          .then((data: { id: string; nama: string }[]) =>
-            setCities(data.map(d => ({ id: d.id, name: d.nama })))
-          )
-          .catch(() => setCities([]))
-      )
-      .finally(() => setLoadingCities(false));
-  }, [form.provinceId]);
 
   const set = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
 
@@ -211,8 +63,10 @@ export default function TambahUMKM() {
         name: form.name,
         category: form.category,
         establishedYear: form.establishedYear ? parseInt(form.establishedYear) : undefined,
-        province: form.provinceName || undefined,
+        province: form.province || undefined,
         city: form.city || undefined,
+        district: form.district || undefined,
+        village: form.village || undefined,
         address: form.address || undefined,
         phone: form.phone || undefined,
         instagram: form.instagram || undefined,
@@ -315,29 +169,10 @@ export default function TambahUMKM() {
                   <label className="text-sm font-medium text-slate-700">Tahun Berdiri</label>
                   <input type="number" value={form.establishedYear} onChange={e => set('establishedYear', e.target.value)} placeholder={String(new Date().getFullYear())} min="1900" max={new Date().getFullYear()} className={inputCls} />
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-slate-700">Provinsi</label>
-                  <SearchableSelect
-                    options={PROVINCES}
-                    value={form.provinceName}
-                    onChange={(opt) => {
-                      set('provinceId', opt.id);
-                      set('provinceName', opt.name);
-                      set('city', '');
-                    }}
-                    placeholder="Pilih Provinsi"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-slate-700">Kota / Kabupaten</label>
-                  <SearchableSelect
-                    options={cities}
-                    value={form.city}
-                    onChange={(opt) => set('city', opt.name)}
-                    placeholder={loadingCities ? 'Memuat...' : 'Pilih Kota/Kabupaten'}
-                    disabled={!form.provinceId || loadingCities}
-                  />
-                </div>
+                <WilayahPicker
+                  value={{ province: form.province, city: form.city, district: form.district, village: form.village }}
+                  onChange={(v) => setForm(f => ({ ...f, ...v }))}
+                />
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">No. Telepon</label>
                   <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="0812-xxxx-xxxx" className={inputCls} />

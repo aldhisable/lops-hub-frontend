@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Edit3, CheckCircle2, Phone, AtSign, Globe, Save, Loader2, Camera } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
+import { WilayahPicker } from '@/components/ui/wilayah-select';
 import { useWorkspace } from '@/context/workspace-context';
 import { umkmApi } from '@/lib/api';
 import { UMKM_CATEGORIES } from '@/lib/constants';
@@ -31,7 +32,7 @@ export default function ProfilUsaha() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: '', category: '', establishedYear: '',
-    city: '', province: '', address: '', description: '', phone: '', instagram: '', website: '',
+    province: '', city: '', district: '', village: '', address: '', description: '', phone: '', instagram: '', website: '',
   });
 
   useEffect(() => {
@@ -40,8 +41,10 @@ export default function ProfilUsaha() {
         name: umkm.name ?? '',
         category: umkm.category ?? '',
         establishedYear: umkm.establishedYear ? String(umkm.establishedYear) : '',
-        city: umkm.city ?? '',
         province: umkm.province ?? '',
+        city: umkm.city ?? '',
+        district: umkm.district ?? '',
+        village: umkm.village ?? '',
         address: umkm.address ?? '',
         description: umkm.description ?? '',
         phone: umkm.phone ?? '',
@@ -80,8 +83,10 @@ export default function ProfilUsaha() {
         name: form.name,
         category: form.category,
         establishedYear: form.establishedYear ? parseInt(form.establishedYear) : undefined,
-        city: form.city || undefined,
         province: form.province || undefined,
+        city: form.city || undefined,
+        district: form.district || undefined,
+        village: form.village || undefined,
         address: form.address || undefined,
         description: form.description || undefined,
         phone: form.phone || undefined,
@@ -226,14 +231,31 @@ export default function ProfilUsaha() {
                   <label className="text-sm font-medium text-slate-700">Website</label>
                   <input value={form.website} onChange={e => set('website', e.target.value)} readOnly={!editing} className={inputCls(editing)} placeholder={editing ? 'contoh.com' : '—'} />
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-slate-700">Kota</label>
-                  <input value={form.city} onChange={e => set('city', e.target.value)} readOnly={!editing} className={inputCls(editing)} placeholder={editing ? 'contoh: Surabaya' : '—'} />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-slate-700">Provinsi</label>
-                  <input value={form.province} onChange={e => set('province', e.target.value)} readOnly={!editing} className={inputCls(editing)} placeholder={editing ? 'contoh: Jawa Timur' : '—'} />
-                </div>
+                {editing ? (
+                  <WilayahPicker
+                    value={{ province: form.province, city: form.city, district: form.district, village: form.village }}
+                    onChange={(v) => setForm(f => ({ ...f, ...v }))}
+                  />
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium text-slate-700">Provinsi</label>
+                      <input value={form.province} readOnly className={inputCls(false)} placeholder="—" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium text-slate-700">Kota / Kabupaten</label>
+                      <input value={form.city} readOnly className={inputCls(false)} placeholder="—" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium text-slate-700">Kecamatan</label>
+                      <input value={form.district} readOnly className={inputCls(false)} placeholder="—" />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium text-slate-700">Kelurahan / Desa</label>
+                      <input value={form.village} readOnly className={inputCls(false)} placeholder="—" />
+                    </div>
+                  </>
+                )}
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-slate-700">Alamat</label>
@@ -247,7 +269,7 @@ export default function ProfilUsaha() {
                 <div className="flex gap-3 justify-end pt-2">
                   <button
                     type="button"
-                    onClick={() => { setEditing(false); if (umkm) setForm({ name: umkm.name, category: umkm.category, establishedYear: umkm.establishedYear ? String(umkm.establishedYear) : '', city: umkm.city ?? '', province: umkm.province ?? '', address: umkm.address ?? '', description: umkm.description ?? '', phone: umkm.phone ?? '', instagram: umkm.instagram ?? '', website: umkm.website ?? '' }); }}
+                    onClick={() => { setEditing(false); if (umkm) setForm({ name: umkm.name, category: umkm.category, establishedYear: umkm.establishedYear ? String(umkm.establishedYear) : '', province: umkm.province ?? '', city: umkm.city ?? '', district: umkm.district ?? '', village: umkm.village ?? '', address: umkm.address ?? '', description: umkm.description ?? '', phone: umkm.phone ?? '', instagram: umkm.instagram ?? '', website: umkm.website ?? '' }); }}
                     className="px-5 py-2.5 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition-colors"
                   >
                     Batal

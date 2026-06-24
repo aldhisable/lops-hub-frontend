@@ -35,6 +35,8 @@ export interface WorkspaceUMKM {
   establishedYear?: number | null;
   city?: string | null;
   province?: string | null;
+  district?: string | null;
+  village?: string | null;
   address?: string | null;
   phone?: string | null;
   instagram?: string | null;
