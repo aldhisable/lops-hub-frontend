@@ -43,6 +43,15 @@ interface AdvancedFilters {
   docType: string;
   yearFrom: string;
   yearTo: string;
+  marketReach: string;
+  exhibitionScale: string;
+  legalStatus: string;
+  technologyLevel: string;
+  supplierStatus: string;
+  employeeMin: string;
+  employeeMax: string;
+  omzetMin: string;
+  omzetMax: string;
 }
 
 const EMPTY_ADVANCED: AdvancedFilters = {
@@ -52,6 +61,28 @@ const EMPTY_ADVANCED: AdvancedFilters = {
   docType: '',
   yearFrom: '',
   yearTo: '',
+  marketReach: '',
+  exhibitionScale: '',
+  legalStatus: '',
+  technologyLevel: '',
+  supplierStatus: '',
+  employeeMin: '',
+  employeeMax: '',
+  omzetMin: '',
+  omzetMax: '',
+};
+
+// 5S assessment option sets (value, label)
+type Opt = [string, string];
+const MARKET_REACH_OPTS: Opt[] = [['LOCAL', 'Lokal'], ['REGIONAL', 'Regional'], ['NATIONAL', 'Nasional'], ['EXPORT', 'Ekspor']];
+const EXHIBITION_OPTS: Opt[] = [['NONE', 'Belum pernah'], ['ANY', 'Pernah (semua skala)'], ['LOCAL', 'Lokal'], ['PROVINCIAL', 'Provinsi'], ['NATIONAL', 'Nasional'], ['INTERNATIONAL', 'Internasional']];
+const LEGAL_OPTS: Opt[] = [['NONE', 'Belum ada'], ['PERMIT', 'Izin Usaha'], ['PERMIT_PRODUCT', 'Izin Usaha + Produk'], ['FULL', 'Lengkap']];
+const TECH_OPTS: Opt[] = [['NONE', 'Belum digital'], ['OFFLINE', 'Offline'], ['SOSMED', 'Media Sosial'], ['ECOMMERCE', 'E-Commerce']];
+const SUPPLIER_OPTS: Opt[] = [['NONE', 'Belum ada'], ['INFORMAL', 'Informal'], ['FORMAL_ONE', 'Formal (1 mitra)'], ['FORMAL_MULTIPLE', 'Formal (banyak mitra)']];
+const labelOf = (opts: Opt[], val: string) => opts.find(([v]) => v === val)?.[1] ?? val;
+const formatRp = (v: string) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? 'Rp' + n.toLocaleString('id-ID') : v;
 };
 
 const CLASS_COLORS: Record<string, string> = {
@@ -227,7 +258,7 @@ function AdvancedFilterPanel({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 w-[480px] max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-2xl shadow-xl z-40 p-5">
+        <div className="absolute left-0 top-full mt-2 w-[480px] max-w-[calc(100vw-2rem)] max-h-[78vh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-xl z-40 p-5">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-slate-900">Filter Lanjutan</h3>
             {activeCount > 0 && (
@@ -311,6 +342,71 @@ function AdvancedFilterPanel({
             </div>
           </div>
 
+          {/* Profil Bisnis (5S) */}
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Profil Bisnis (5S)</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Jangkauan Pasar</label>
+                <select value={filters.marketReach} onChange={(e) => onChange('marketReach', e.target.value)} className={selectClass}>
+                  <option value="">Semua</option>
+                  {MARKET_REACH_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Pameran</label>
+                <select value={filters.exhibitionScale} onChange={(e) => onChange('exhibitionScale', e.target.value)} className={selectClass}>
+                  <option value="">Semua</option>
+                  {EXHIBITION_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Legalitas</label>
+                <select value={filters.legalStatus} onChange={(e) => onChange('legalStatus', e.target.value)} className={selectClass}>
+                  <option value="">Semua</option>
+                  {LEGAL_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Digitalisasi</label>
+                <select value={filters.technologyLevel} onChange={(e) => onChange('technologyLevel', e.target.value)} className={selectClass}>
+                  <option value="">Semua</option>
+                  {TECH_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Status Supplier</label>
+                <select value={filters.supplierStatus} onChange={(e) => onChange('supplierStatus', e.target.value)} className={selectClass}>
+                  <option value="">Semua</option>
+                  {SUPPLIER_OPTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Omzet & SDM */}
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Omzet & SDM</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Omzet total min (Rp)</label>
+                <input type="number" min="0" placeholder="cth: 50000000" value={filters.omzetMin} onChange={(e) => onChange('omzetMin', e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Omzet total maks (Rp)</label>
+                <input type="number" min="0" placeholder="cth: 500000000" value={filters.omzetMax} onChange={(e) => onChange('omzetMax', e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Karyawan (min)</label>
+                <input type="number" min="0" placeholder="cth: 1" value={filters.employeeMin} onChange={(e) => onChange('employeeMin', e.target.value)} className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Karyawan (maks)</label>
+                <input type="number" min="0" placeholder="cth: 50" value={filters.employeeMax} onChange={(e) => onChange('employeeMax', e.target.value)} className={inputClass} />
+              </div>
+            </div>
+          </div>
+
           <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
             <button
               onClick={() => setOpen(false)}
@@ -347,6 +443,15 @@ function ActiveFilterBadges({
   }
   if (filters.yearFrom) badges.push({ key: 'yearFrom', label: `Berdiri dari: ${filters.yearFrom}` });
   if (filters.yearTo) badges.push({ key: 'yearTo', label: `Berdiri s/d: ${filters.yearTo}` });
+  if (filters.marketReach) badges.push({ key: 'marketReach', label: `Pasar: ${labelOf(MARKET_REACH_OPTS, filters.marketReach)}` });
+  if (filters.exhibitionScale) badges.push({ key: 'exhibitionScale', label: `Pameran: ${labelOf(EXHIBITION_OPTS, filters.exhibitionScale)}` });
+  if (filters.legalStatus) badges.push({ key: 'legalStatus', label: `Legalitas: ${labelOf(LEGAL_OPTS, filters.legalStatus)}` });
+  if (filters.technologyLevel) badges.push({ key: 'technologyLevel', label: `Digital: ${labelOf(TECH_OPTS, filters.technologyLevel)}` });
+  if (filters.supplierStatus) badges.push({ key: 'supplierStatus', label: `Supplier: ${labelOf(SUPPLIER_OPTS, filters.supplierStatus)}` });
+  if (filters.omzetMin) badges.push({ key: 'omzetMin', label: `Omzet ≥ ${formatRp(filters.omzetMin)}` });
+  if (filters.omzetMax) badges.push({ key: 'omzetMax', label: `Omzet ≤ ${formatRp(filters.omzetMax)}` });
+  if (filters.employeeMin) badges.push({ key: 'employeeMin', label: `Karyawan ≥ ${filters.employeeMin}` });
+  if (filters.employeeMax) badges.push({ key: 'employeeMax', label: `Karyawan ≤ ${filters.employeeMax}` });
 
   if (badges.length === 0) return null;
 
@@ -433,6 +538,15 @@ export function UMKMDirectoryPage() {
     if (advanced.docType) params.docType = advanced.docType;
     if (advanced.yearFrom) params.yearFrom = parseInt(advanced.yearFrom);
     if (advanced.yearTo) params.yearTo = parseInt(advanced.yearTo);
+    if (advanced.marketReach) params.marketReach = advanced.marketReach;
+    if (advanced.exhibitionScale) params.exhibitionScale = advanced.exhibitionScale;
+    if (advanced.legalStatus) params.legalStatus = advanced.legalStatus;
+    if (advanced.technologyLevel) params.technologyLevel = advanced.technologyLevel;
+    if (advanced.supplierStatus) params.supplierStatus = advanced.supplierStatus;
+    if (advanced.employeeMin) params.employeeMin = parseInt(advanced.employeeMin);
+    if (advanced.employeeMax) params.employeeMax = parseInt(advanced.employeeMax);
+    if (advanced.omzetMin) params.omzetMin = Number(advanced.omzetMin);
+    if (advanced.omzetMax) params.omzetMax = Number(advanced.omzetMax);
 
     umkmApi
       .list(params)
