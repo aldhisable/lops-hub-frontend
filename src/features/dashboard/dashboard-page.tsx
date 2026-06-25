@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Users, PieChart, TrendingUp, Award, FileText, MapPin } from 'lucide-react';
+import { Users, PieChart, TrendingUp, Award, FileText } from 'lucide-react';
 import { KPICard } from '@/components/ui/kpi-card';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlassCard } from '@/components/ui/glass-card';
+import { DashboardMapCard } from './dashboard-map-card';
 import { analyticsApi } from '@/lib/api';
 import { formatCompactRupiah } from '@/lib/currency';
 
@@ -104,22 +105,8 @@ export function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* MAP Placeholder */}
-        <GlassCard className="p-6 lg:col-span-2 min-h-[400px] flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-semibold text-lg text-slate-900">Peta Sebaran UMKM</h3>
-            <div className="flex bg-slate-100 p-1 rounded-lg">
-              <button className="px-4 py-1.5 text-sm font-medium bg-white rounded-md shadow-sm text-slate-800">Provinsi</button>
-              <button className="px-4 py-1.5 text-sm font-medium text-slate-500 hover:text-slate-700">Kota / Kabupaten</button>
-            </div>
-          </div>
-          <div className="flex-1 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-center text-slate-400 relative overflow-hidden">
-            <MapPin className="w-16 h-16 opacity-20 mb-2 absolute" />
-            <span className="relative z-10 font-medium bg-white/80 px-4 py-2 rounded-lg backdrop-blur-sm border border-slate-200">
-              Google Maps Area — <a href="/dashboard/peta" className="text-blue-600 hover:underline">Buka Halaman Peta</a>
-            </span>
-          </div>
-        </GlassCard>
+        {/* MAP — Peta Sebaran UMKM (choropleth heatmap) */}
+        <DashboardMapCard />
 
         {/* Classification Distribution */}
         <GlassCard className="p-6">
