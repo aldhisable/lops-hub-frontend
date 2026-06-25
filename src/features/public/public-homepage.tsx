@@ -127,7 +127,7 @@ export function PublicHomepage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* PROVINCE DISTRIBUTION (2/3 width) — real data */}
-          <section className="lg:col-span-2 flex flex-col" id="statistik">
+          <section className="lg:col-span-2 flex flex-col scroll-mt-24" id="statistik">
             <GlassCard className="p-6 flex-1 flex flex-col min-h-[500px] relative overflow-hidden">
               <div className="flex justify-between items-start mb-6 relative z-10">
                 <div>

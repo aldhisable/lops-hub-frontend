@@ -17,8 +17,6 @@ export function PublicLayout({ children }: { children: ReactNode }) {
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
             <Link href="/" className="hover:text-blue-600 transition-colors">Beranda</Link>
-            <Link href="#program" className="hover:text-blue-600 transition-colors">Program</Link>
-            <Link href="#showcase" className="hover:text-blue-600 transition-colors">Showcase</Link>
             <Link href="#statistik" className="hover:text-blue-600 transition-colors">Statistik</Link>
           </nav>
 
