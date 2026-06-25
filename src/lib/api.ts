@@ -218,7 +218,19 @@ export const analyticsApi = {
       byCity: Array<{ city: string; province: string; count: number }>;
       byProvince: Array<{ province: string; count: number }>;
     }>('/analytics/map', { params }),
+  recentActivity: (limit?: number) =>
+    api.get<RecentActivity[]>('/analytics/recent-activity', { params: { limit } }),
 };
+
+export interface RecentActivity {
+  id: string;
+  type: 'UMKM_NEW' | 'UMKM_UPDATE' | 'PRODUCT_NEW' | 'SALES_UPDATE';
+  umkmName: string;
+  detail: string;
+  city: string | null;
+  province: string | null;
+  timestamp: string;
+}
 
 export interface AuthUser {
   id: string;

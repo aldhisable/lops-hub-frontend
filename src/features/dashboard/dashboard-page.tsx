@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Users, PieChart, TrendingUp, Award, FileText } from 'lucide-react';
+import { Users, PieChart, TrendingUp, Award } from 'lucide-react';
 import { KPICard } from '@/components/ui/kpi-card';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlassCard } from '@/components/ui/glass-card';
 import { DashboardMapCard } from './dashboard-map-card';
+import { DashboardActivityCard } from './dashboard-activity-card';
 import { analyticsApi } from '@/lib/api';
 import { formatCompactRupiah } from '@/lib/currency';
 
@@ -157,41 +158,7 @@ export function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <GlassCard className="p-6 mb-8">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="font-semibold text-lg text-slate-900">Aktivitas Terbaru</h3>
-          <button className="text-sm font-medium text-blue-600 hover:text-blue-700">Lihat Semua</button>
-        </div>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-              <FileText className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">UMKM &quot;Kopi Nusantara&quot; memperbarui data omzet</p>
-              <p className="text-xs text-slate-500 mt-0.5">Makassar, Sulawesi Selatan • 5 menit lalu</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600 shrink-0">
-              <Users className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">Regional 2 menambahkan 12 UMKM baru</p>
-              <p className="text-xs text-slate-500 mt-0.5">Bandung, Jawa Barat • 1 jam lalu</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
-              <Award className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-slate-900">UMKM &quot;Srikandi Craft&quot; naik kelas ke Gold</p>
-              <p className="text-xs text-slate-500 mt-0.5">Surabaya, Jawa Timur • 2 jam lalu</p>
-            </div>
-          </div>
-        </div>
-      </GlassCard>
+      <DashboardActivityCard />
     </>
   );
 }
