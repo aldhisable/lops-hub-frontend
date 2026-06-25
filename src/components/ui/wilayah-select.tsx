@@ -5,7 +5,9 @@ import { ChevronDown, Search } from 'lucide-react';
 
 export interface Wilayah { id: string; name: string }
 
-const BASE = 'https://emsifa.github.io/api-wilayah-indonesia/api';
+// Catatan: domain lama emsifa.github.io kini 301 → http:// (mixed-content, diblokir browser di HTTPS).
+// Gunakan domain baru yang mendukung HTTPS + CORS.
+const BASE = 'https://www.emsifa.com/api-wilayah-indonesia/api';
 
 // Canonical province list (Title Case, 38 provinces incl. new Papua provinces)
 export const INDONESIA_PROVINCES: Wilayah[] = [

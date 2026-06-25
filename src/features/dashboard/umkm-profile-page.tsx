@@ -198,7 +198,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
     if (!showEditModal) return;
     let cancelled = false;
 
-    fetch('https://emsifa.github.io/api-wilayah-indonesia/api/provinces.json')
+    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
       .then(r => {
         if (!r.ok) throw new Error('Failed to load provinces');
         return r.json();
@@ -242,7 +242,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
       return () => { cancelled = true; };
     }
 
-    fetch(`https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${matched.id}.json`)
+    fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${matched.id}.json`)
       .then(r => {
         if (!r.ok) throw new Error('Failed to load cities');
         return r.json();
