@@ -1,23 +1,51 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { PublicLayout } from '@/components/layout/public-layout';
 import { KPICard } from '@/components/ui/kpi-card';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Users, TrendingUp, Award, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { analyticsApi, PublicStats } from '@/lib/api';
 
-// Dummy data as requested
-const dummyRevenueData = [
-  { month: 'Jan 2025', revenue: 1.2 },
-  { month: 'Feb 2025', revenue: 1.5 },
-  { month: 'Mar 2025', revenue: 1.8 },
-  { month: 'Apr 2025', revenue: 2.1 },
-  { month: 'Mei 2025', revenue: 2.45 },
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+function rpCompact(n: number): string {
+  if (n >= 1e12) return `Rp ${(n / 1e12).toLocaleString('id-ID', { maximumFractionDigits: 2 })} T`;
+  if (n >= 1e9) return `Rp ${(n / 1e9).toLocaleString('id-ID', { maximumFractionDigits: 1 })} M`;
+  if (n >= 1e6) return `Rp ${(n / 1e6).toLocaleString('id-ID', { maximumFractionDigits: 1 })} Jt`;
+  return `Rp ${n.toLocaleString('id-ID')}`;
+}
+
+const PIPELINE_STYLES = [
+  { wrap: 'from-blue-500 to-blue-600 shadow-blue-500/20', width: 'w-full', value: 'text-3xl' },
+  { wrap: 'from-purple-500 to-purple-600 shadow-purple-500/20', width: 'w-[85%]', value: 'text-2xl' },
+  { wrap: 'from-amber-500 to-amber-600 shadow-amber-500/20', width: 'w-[70%]', value: 'text-xl' },
+  { wrap: 'from-emerald-500 to-emerald-600 shadow-emerald-500/20', width: 'w-[58%]', value: 'text-lg' },
 ];
 
 export function PublicHomepage() {
+  const [stats, setStats] = useState<PublicStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    analyticsApi.publicStats()
+      .then((res) => setStats(res.data))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const dash = (v: string | number) => (loading ? '—' : v);
+
+  const revenueData = (stats?.revenueTrend ?? []).map((r) => ({
+    month: `${MONTHS[r.month - 1]} ${r.year}`,
+    revenue: r.revenue,
+  }));
+  const pipeline = (stats?.pipeline ?? []).slice(0, 4);
+  const provinces = (stats?.byProvince ?? []).slice(0, 7);
+  const maxProvince = provinces[0]?.count ?? 1;
+
   return (
     <PublicLayout>
       {/* Background Ambient Glow */}
@@ -28,10 +56,10 @@ export function PublicHomepage() {
       </div>
 
       <div className="container mx-auto px-4 md:px-6 py-12 flex flex-col gap-16">
-        
+
         {/* HERO SECTION */}
         <section className="flex flex-col items-center text-center mt-10 md:mt-20">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -43,16 +71,16 @@ export function PublicHomepage() {
             </span>
             Monitoring Ekosistem UMKM Nasional
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight max-w-4xl leading-tight"
           >
-            Mendorong Pertumbuhan <br className="hidden md:block"/>
+            Mendorong Pertumbuhan <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">UMKM Nusantara</span>
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -62,101 +90,112 @@ export function PublicHomepage() {
           </motion.p>
         </section>
 
-        {/* KPI COUNTERS */}
+        {/* KPI COUNTERS — real data */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
-          <KPICard 
-            title="Total UMKM Binaan" 
-            value="1.284" 
+          <KPICard
+            title="Total UMKM Binaan"
+            value={dash(stats ? stats.totalUmkm.toLocaleString('id-ID') : '—')}
             icon={Users}
             iconBgClass="bg-blue-100"
             iconColorClass="text-blue-600"
-            trend={{ value: 18.2, isPositive: true, label: "vs Apr 2025" }}
-            sparklineData={[10, 15, 12, 18, 25, 30, 35]}
           />
-          <KPICard 
-            title="Total Omzet (Penjualan)" 
-            value="Rp 2,45 T" 
+          <KPICard
+            title="Total Omzet (Penjualan)"
+            value={dash(stats ? rpCompact(stats.totalOmzet) : '—')}
             icon={TrendingUp}
             iconBgClass="bg-purple-100"
             iconColorClass="text-purple-600"
-            trend={{ value: 24.6, isPositive: true, label: "vs Apr 2025" }}
-            sparklineData={[20, 22, 28, 35, 42, 50, 60]}
+            trend={stats ? { value: Math.abs(stats.momGrowthPct), isPositive: stats.momGrowthPct >= 0, label: 'bulan terakhir' } : undefined}
+            sparklineData={revenueData.map((r) => r.revenue)}
           />
-          <KPICard 
-            title="Rata-rata Growth" 
-            value="23,8%" 
+          <KPICard
+            title="Pertumbuhan Omzet"
+            value={dash(stats ? `${stats.momGrowthPct.toLocaleString('id-ID')}%` : '—')}
             icon={TrendingUp}
             iconBgClass="bg-emerald-100"
             iconColorClass="text-emerald-600"
-            trend={{ value: 6.1, isPositive: true, label: "vs Apr 2025" }}
-            sparklineData={[10, 12, 15, 16, 18, 20, 24]}
+            trend={stats ? { value: Math.abs(stats.momGrowthPct), isPositive: stats.momGrowthPct >= 0, label: 'vs bulan lalu' } : undefined}
           />
-          <KPICard 
-            title="UMKM Naik Kelas" 
-            value="186" 
+          <KPICard
+            title="UMKM Naik Kelas"
+            value={dash(stats ? stats.umkmNaikKelas.toLocaleString('id-ID') : '—')}
             icon={Award}
             iconBgClass="bg-amber-100"
             iconColorClass="text-amber-600"
-            trend={{ value: 15.3, isPositive: true, label: "vs Apr 2025" }}
-            sparklineData={[5, 8, 12, 15, 18, 25, 30]}
           />
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* MAP PLACEHOLDER SECTION (2/3 width) */}
+          {/* PROVINCE DISTRIBUTION (2/3 width) — real data */}
           <section className="lg:col-span-2 flex flex-col" id="statistik">
-            <GlassCard className="p-6 flex-1 flex flex-col min-h-[500px] relative overflow-hidden group">
-              <div className="flex justify-between items-start mb-4 relative z-10">
+            <GlassCard className="p-6 flex-1 flex flex-col min-h-[500px] relative overflow-hidden">
+              <div className="flex justify-between items-start mb-6 relative z-10">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">Peta Sebaran UMKM</h3>
-                  <p className="text-sm text-slate-500">Visualisasi sebaran UMKM binaan di seluruh Indonesia</p>
+                  <h3 className="text-xl font-bold text-slate-900">Sebaran UMKM per Provinsi</h3>
+                  <p className="text-sm text-slate-500">Distribusi UMKM binaan teratas berdasarkan provinsi</p>
                 </div>
+                <MapPin className="w-6 h-6 text-blue-500/60" />
               </div>
-              
-              {/* Dummy Map Illustration */}
-              <div className="flex-1 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center relative overflow-hidden">
-                 <div className="absolute inset-0 opacity-20" style={{
-                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233b82f6' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                 }}></div>
-                 <div className="text-center relative z-10">
-                    <MapPin className="w-12 h-12 text-blue-500 mx-auto mb-3 opacity-50" />
-                    <p className="text-slate-500 font-medium">Google Maps Integration<br/>(Akan diimplementasi di Dashboard)</p>
-                 </div>
-              </div>
+
+              {loading ? (
+                <div className="flex-1 flex items-center justify-center text-slate-400">Memuat data...</div>
+              ) : provinces.length === 0 ? (
+                <div className="flex-1 flex items-center justify-center text-slate-400">Belum ada data sebaran.</div>
+              ) : (
+                <div className="flex flex-col gap-4 flex-1 justify-center">
+                  {provinces.map((p) => (
+                    <div key={p.province}>
+                      <div className="flex justify-between text-sm mb-1.5">
+                        <span className="font-medium text-slate-700">{p.province}</span>
+                        <span className="text-slate-500">{p.count.toLocaleString('id-ID')} UMKM</span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-blue-500 to-purple-500"
+                          style={{ width: `${Math.max(6, (p.count / maxProvince) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </GlassCard>
           </section>
 
-          {/* PIPELINE & ANALYTICS (1/3 width) */}
+          {/* PIPELINE & ANALYTICS (1/3 width) — real data */}
           <section className="flex flex-col gap-6">
-            {/* Pipeline Dummy */}
+            {/* Pipeline Program */}
             <GlassCard className="p-6">
               <h3 className="text-lg font-bold text-slate-900 mb-6">Pipeline Program</h3>
-              <div className="flex flex-col gap-2">
-                <div className="w-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white text-center relative shadow-lg shadow-blue-500/20">
-                   <div className="text-sm font-medium opacity-80">Maritimepreneur</div>
-                   <div className="text-3xl font-bold mt-1">642</div>
+              {loading ? (
+                <p className="text-sm text-slate-400">Memuat...</p>
+              ) : pipeline.length === 0 ? (
+                <p className="text-sm text-slate-400">Belum ada program.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {pipeline.map((p, i) => {
+                    const s = PIPELINE_STYLES[i] ?? PIPELINE_STYLES[PIPELINE_STYLES.length - 1];
+                    return (
+                      <div key={p.name} className={`${s.width} mx-auto bg-gradient-to-r ${s.wrap} rounded-lg p-4 text-white text-center shadow-lg`}>
+                        <div className="text-sm font-medium opacity-80 truncate">{p.name}</div>
+                        <div className={`${s.value} font-bold mt-1`}>{p.participants.toLocaleString('id-ID')}</div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="w-[80%] mx-auto bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-4 text-white text-center relative shadow-lg shadow-purple-500/20">
-                   <div className="text-sm font-medium opacity-80">UMK Akselerator</div>
-                   <div className="text-2xl font-bold mt-1">214</div>
-                </div>
-                <div className="w-[60%] mx-auto bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg p-4 text-white text-center relative shadow-lg shadow-amber-500/20">
-                   <div className="text-sm font-medium opacity-80">Gedor Ekspor</div>
-                   <div className="text-xl font-bold mt-1">57</div>
-                </div>
-              </div>
+              )}
             </GlassCard>
 
-            {/* Revenue Dummy Chart */}
-            <AnalyticsChart 
-              title="Tren Omzet (Penjualan)" 
-              subtitle="Total omzet UMKM (dalam Triliun Rupiah)"
-              data={dummyRevenueData}
+            {/* Revenue Trend */}
+            <AnalyticsChart
+              title="Tren Omzet (Penjualan)"
+              subtitle="Total omzet UMKM binaan per bulan"
+              data={revenueData}
               dataKey="revenue"
               xAxisKey="month"
               height={220}
               color="#3b82f6"
-              valueFormatter={(val) => `Rp ${val} T`}
+              valueFormatter={(val) => rpCompact(Number(val))}
               className="flex-1"
             />
           </section>

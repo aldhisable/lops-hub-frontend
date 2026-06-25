@@ -191,7 +191,18 @@ export const assessmentApi = {
 };
 
 // Analytics
+export interface PublicStats {
+  totalUmkm: number;
+  umkmNaikKelas: number;
+  totalOmzet: number;
+  momGrowthPct: number;
+  pipeline: Array<{ name: string; participants: number }>;
+  byProvince: Array<{ province: string; count: number }>;
+  revenueTrend: Array<{ year: number; month: number; revenue: number }>;
+}
+
 export const analyticsApi = {
+  publicStats: () => api.get<PublicStats>('/analytics/public'),
   dashboard: () => api.get('/analytics/dashboard'),
   regional: (regional: string) => api.get(`/analytics/regional/${encodeURIComponent(regional)}`),
   workspace: () => api.get('/analytics/workspace'),
