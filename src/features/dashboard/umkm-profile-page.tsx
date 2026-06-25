@@ -11,7 +11,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
-import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile, analyticsApi } from '@/lib/api';
+import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile, analyticsApi, API_BASE } from '@/lib/api';
 import { UMKM_CATEGORIES } from '@/lib/constants';
 import { formatCompactRupiah, formatRupiah } from '@/lib/currency';
 import { useAuth } from '@/context/auth-context';
@@ -198,7 +198,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
     if (!showEditModal) return;
     let cancelled = false;
 
-    fetch('https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json')
+    fetch(`${API_BASE}/wilayah/provinces.json`)
       .then(r => {
         if (!r.ok) throw new Error('Failed to load provinces');
         return r.json();
@@ -242,7 +242,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
       return () => { cancelled = true; };
     }
 
-    fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${matched.id}.json`)
+    fetch(`${API_BASE}/wilayah/regencies/${matched.id}.json`)
       .then(r => {
         if (!r.ok) throw new Error('Failed to load cities');
         return r.json();

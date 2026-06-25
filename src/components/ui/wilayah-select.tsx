@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Search } from 'lucide-react';
+import { API_BASE } from '@/lib/api';
 
 export interface Wilayah { id: string; name: string }
 
-// Catatan: domain lama emsifa.github.io kini 301 → http:// (mixed-content, diblokir browser di HTTPS).
-// Gunakan domain baru yang mendukung HTTPS + CORS.
-const BASE = 'https://www.emsifa.com/api-wilayah-indonesia/api';
+// Lewat proxy backend sendiri (server-side fetch ke sumber wilayah) agar tidak
+// bergantung pada API eksternal yang bisa lambat/diblokir dari jaringan user.
+const BASE = `${API_BASE}/wilayah`;
 
 // Canonical province list (Title Case, 38 provinces incl. new Papua provinces)
 export const INDONESIA_PROVINCES: Wilayah[] = [
