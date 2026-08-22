@@ -229,7 +229,25 @@ export const financialApi = {
     api.post(`/financial/${umkmId}`, data),
 };
 
-// Assessment (5S indicator data input by UMKM)
+export interface Assessment5SInput {
+  employeeCount?: number | null;
+  technologyLevel?: 'NONE' | 'OFFLINE' | 'SOSMED' | 'ECOMMERCE' | null;
+  legalStatus?: 'NONE' | 'PERMIT' | 'PERMIT_PRODUCT' | 'FULL' | null;
+  marketReach?: 'LOCAL' | 'REGIONAL' | 'NATIONAL' | 'EXPORT' | null;
+  exhibitionScale?: 'NONE' | 'LOCAL' | 'PROVINCIAL' | 'NATIONAL' | 'INTERNATIONAL' | null;
+  supplierStatus?: 'NONE' | 'INFORMAL' | 'FORMAL_ONE' | 'FORMAL_MULTIPLE' | null;
+  // Kenaikan aset usaha dalam juta Rupiah, di luar tanah dan bangunan.
+  assetGrowthMillion?: number | null;
+}
+
+export interface Scoring5SResult {
+  classification: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | null;
+  score: number | null;
+  completeness: number;
+  complete: boolean;
+}
+
+// Assessment (5S indicator data input by UMKM & admin)
 export const assessmentApi = {
   getMe: () => api.get('/umkm/me/assessment'),
   upsertMe: (data: {
@@ -242,6 +260,9 @@ export const assessmentApi = {
     assetGrowthMillion?: number | null;
   }) => api.put('/umkm/me/assessment', data),
   getByUmkm: (id: string) => api.get(`/umkm/${id}/assessment`),
+  // Admin mengisi data 5S atas nama UMKM. Menyimpan sekaligus menghitung ulang
+  // klasifikasi; respons memuat { scoring: { classification, score, completeness, complete } }.
+  upsertByUmkm: (id: string, data: Assessment5SInput) => api.put(`/umkm/${id}/assessment`, data),
 };
 
 // Analytics
