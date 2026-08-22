@@ -214,7 +214,15 @@ const LEGEND = [
   { color: '#e2e8f0', label: '0 – 1'   },
 ];
 
-export function MapPage() {
+export function MapPage({
+  basePath = '/dashboard',
+  title = 'Peta Sebaran Nasional',
+  subtitle,
+}: {
+  basePath?: string;
+  title?: string;
+  subtitle?: string;
+} = {}) {
   const router = useRouter();
   const [activeProgram, setActiveProgram] = useState('Semua Program');
   const [activeClass, setActiveClass] = useState('Semua Kelas');
@@ -288,7 +296,7 @@ export function MapPage() {
       {/* Header + Filter */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4 mb-6 shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Peta Sebaran Nasional</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
           <p className="text-slate-500 mt-1">
             Pemetaan interaktif UMKM binaan di seluruh Indonesia
             {!loading && totalUmkm > 0 && (
@@ -366,7 +374,7 @@ export function MapPage() {
                     const param = selected.isCity
                       ? `city=${encodeURIComponent(selected.label)}`
                       : `province=${encodeURIComponent(selected.label)}`;
-                    router.push(`/dashboard/umkm?${param}`);
+                    router.push(`${basePath}/umkm?${param}`);
                   }}
                   className="w-full py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                 >

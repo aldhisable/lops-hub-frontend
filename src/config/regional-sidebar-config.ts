@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, Folders, Award, Map,
-  FileText, PieChart, Target, UserCircle, Settings
+  FileText, PieChart, Settings,
 } from 'lucide-react';
 import type { SidebarNavItem } from '@/components/layout/sidebar-nav';
 
@@ -24,10 +24,11 @@ export const regionalDataNavItems: SidebarNavItem[] = [
 
 export const regionalAnalyticsNavItems: SidebarNavItem[] = [
   { label: 'Analytics', icon: PieChart, href: '/regional/analytics' },
-  { label: 'Target & KPI', icon: Target, href: '/regional/target' },
 ];
 
+// 'Target & KPI' dan 'Pengguna' sengaja tidak dicantumkan: belum ada model
+// Target maupun API manajemen pengguna, jadi menunya hanya akan mengarah ke
+// halaman contoh. Munculkan kembali begitu backend-nya ada.
 export const regionalSupportNavItems: SidebarNavItem[] = [
-  { label: 'Pengguna', icon: UserCircle, href: '/regional/users' },
   { label: 'Pengaturan', icon: Settings, href: '/regional/settings' },
 ];

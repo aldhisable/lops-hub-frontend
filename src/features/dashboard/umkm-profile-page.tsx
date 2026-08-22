@@ -142,7 +142,7 @@ interface LopsSalesEntry { month: number; year: number; amount: number; gerai: s
 const CURRENT_YEAR = new Date().getFullYear();
 const CURRENT_MONTH = new Date().getMonth() + 1;
 
-export function UMKMProfilePage({ id }: { id?: string }) {
+export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; basePath?: string }) {
   const { user: authUser } = useAuth();
   const isAdmin = authUser?.role === 'ADMIN_PUSAT' || authUser?.role === 'ADMIN_REGIONAL';
 
@@ -457,7 +457,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400">
         Data UMKM tidak ditemukan.{' '}
-        <Link href="/dashboard/umkm" className="text-blue-600 ml-2 hover:underline">Kembali ke direktori</Link>
+        <Link href={`${basePath}/umkm`} className="text-blue-600 ml-2 hover:underline">Kembali ke direktori</Link>
       </div>
     );
   }
@@ -470,7 +470,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
     <>
       {/* Breadcrumb */}
       <div className="flex items-center text-sm font-medium text-slate-400 mb-6 gap-2">
-        <Link href="/dashboard/umkm" className="hover:text-blue-600 transition-colors">UMKM</Link>
+        <Link href={`${basePath}/umkm`} className="hover:text-blue-600 transition-colors">UMKM</Link>
         <ChevronRight className="w-3.5 h-3.5" />
         <span className="text-slate-800 font-semibold">{umkm.name}</span>
       </div>
@@ -482,7 +482,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
           <p className="text-slate-500 mt-1">Kelola dan pantau perkembangan UMK secara lengkap</p>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/dashboard/umkm" className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">
+          <Link href={`${basePath}/umkm`} className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">
             <ArrowLeft className="w-4 h-4" /> Kembali
           </Link>
           <GlowButton variant="primary" onClick={openEditModal} className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium">

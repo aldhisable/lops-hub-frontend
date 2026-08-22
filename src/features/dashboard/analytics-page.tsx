@@ -75,7 +75,7 @@ const SCORE_TIER: Record<number, { label: string; cls: string }> = {
   100: { label: 'Platinum', cls: 'bg-blue-100 text-blue-700' },
 };
 
-export function AnalyticsPage() {
+export function AnalyticsPage({ title = 'Analytics & Insights' }: { title?: string } = {}) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [trend, setTrend] = useState<RevenueTrendItem[]>([]);
   const [agg, setAgg] = useState<Aggregate5S | null>(null);
@@ -140,7 +140,7 @@ export function AnalyticsPage() {
     <>
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Analytics & Insights</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
           <p className="text-slate-500 mt-1">Laporan kinerja dan analitik mendalam program UMKM</p>
         </div>
       </div>

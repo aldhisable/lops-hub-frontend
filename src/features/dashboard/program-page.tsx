@@ -252,7 +252,7 @@ function ParticipantsModal({ program, onClose, onChanged }: { program: Program; 
 
 const EMPTY_FORM: FormState = { name: '', description: '', startDate: '', endDate: '', status: 'UPCOMING' };
 
-export function ProgramPage() {
+export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } = {}) {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Semua');
@@ -336,7 +336,7 @@ export function ProgramPage() {
     <>
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Manajemen Program</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
           <p className="text-slate-500 mt-1">Kelola program pembinaan dan pelatihan UMKM</p>
         </div>
         <div className="flex items-center gap-3">

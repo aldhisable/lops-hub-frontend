@@ -97,10 +97,11 @@ const CLASS_COLORS: Record<string, string> = {
   BRONZE: 'bg-orange-100 text-orange-700',
 };
 
-function ActionDropdown({ row, onArchive, onDelete }: {
+function ActionDropdown({ row, onArchive, onDelete, basePath }: {
   row: UMKMRow;
   onArchive: (row: UMKMRow) => void;
   onDelete: (row: UMKMRow) => void;
+  basePath: string;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -128,7 +129,7 @@ function ActionDropdown({ row, onArchive, onDelete }: {
       {open && (
         <div className="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 overflow-hidden">
           <Link
-            href={`/dashboard/umkm/${row.id}`}
+            href={`${basePath}/umkm/${row.id}`}
             className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
             onClick={() => setOpen(false)}
           >
@@ -508,7 +509,15 @@ function ActiveFilterBadges({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-export function UMKMDirectoryPage() {
+export function UMKMDirectoryPage({
+  basePath = '/dashboard',
+  scopeLabel,
+  canCreate = true,
+}: {
+  basePath?: string;
+  scopeLabel?: string;
+  canCreate?: boolean;
+} = {}) {
   const router = useRouter();
 
   const [cityFilter, setCityFilter] = useState('');
@@ -628,7 +637,7 @@ export function UMKMDirectoryPage() {
       header: 'Nama UMKM',
       accessor: 'name' as const,
       render: (val: string, row: UMKMRow) => (
-        <Link href={`/dashboard/umkm/${row.id}`} className="font-semibold text-slate-800 hover:text-blue-600 transition-colors">
+        <Link href={`${basePath}/umkm/${row.id}`} className="font-semibold text-slate-800 hover:text-blue-600 transition-colors">
           {val}
         </Link>
       ),
@@ -659,6 +668,7 @@ export function UMKMDirectoryPage() {
       accessor: 'id' as const,
       render: (_: string, row: UMKMRow) => (
         <ActionDropdown
+          basePath={basePath}
           row={row}
           onArchive={(r) => setConfirm({ type: 'archive', id: r.id, name: r.name })}
           onDelete={(r) => setConfirm({ type: 'delete', id: r.id, name: r.name })}
@@ -680,7 +690,7 @@ export function UMKMDirectoryPage() {
 
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Direktori UMKM Binaan</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Direktori UMKM Binaan{scopeLabel ? ` — ${scopeLabel}` : ''}</h1>
           <p className="text-slate-500 mt-1">
             Kelola dan pantau data {loading ? '...' : total.toLocaleString('id-ID')} UMKM yang terdaftar di sistem.
           </p>
@@ -689,7 +699,7 @@ export function UMKMDirectoryPage() {
               <MapPin className="w-3.5 h-3.5 text-blue-500" />
               <span className="text-sm text-blue-700 font-medium">{locationLabel}</span>
               <button
-                onClick={() => router.push('/dashboard/umkm')}
+                onClick={() => router.push(`${basePath}/umkm`)}
                 className="ml-1 text-blue-400 hover:text-blue-600 text-xs font-bold"
               >
                 ✕
@@ -701,11 +711,13 @@ export function UMKMDirectoryPage() {
           <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">
             <Download className="w-4 h-4" /> Export Data
           </button>
-          <Link href="/dashboard/umkm/tambah">
-            <GlowButton variant="primary" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium">
-              <Plus className="w-4 h-4" /> Tambah UMKM
-            </GlowButton>
-          </Link>
+          {canCreate && (
+            <Link href={`${basePath}/umkm/tambah`}>
+              <GlowButton variant="primary" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium">
+                <Plus className="w-4 h-4" /> Tambah UMKM
+              </GlowButton>
+            </Link>
+          )}
         </div>
       </div>
 

@@ -6,9 +6,11 @@ import { SidebarNav } from '@/components/layout/sidebar-nav';
 import { TopBar } from '@/components/layout/top-bar';
 import { InternalLayout } from '@/components/layout/internal-layout';
 import { regionalBrandConfig, regionalMainNavItems, regionalDataNavItems, regionalAnalyticsNavItems, regionalSupportNavItems } from '@/config/regional-sidebar-config';
-import { MapPin, ChevronDown } from 'lucide-react';
+import { MapPin } from 'lucide-react';
+import { useAuth } from '@/context/auth-context';
 
 function RegionalSidebar({ activePath }: { activePath: string }) {
+  const { user } = useAuth();
   const allItems = [...regionalMainNavItems, ...regionalDataNavItems, ...regionalAnalyticsNavItems];
   return (
     <aside className="w-[280px] bg-white border-r border-slate-100 flex flex-col h-screen fixed left-0 top-0 z-40 overflow-y-auto">
@@ -38,11 +40,10 @@ function RegionalSidebar({ activePath }: { activePath: string }) {
       <div className="p-4 mt-auto">
         <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Regional Aktif</div>
-          <button className="flex items-center gap-3 w-full">
+          <div className="flex items-center gap-3 w-full">
             <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center"><MapPin className="w-4 h-4 text-blue-600" /></div>
-            <div className="flex-1 text-left"><div className="text-sm font-semibold text-slate-900">Regional 4</div><div className="text-xs text-slate-500">Makassar, Sulawesi Selatan</div></div>
-            <ChevronDown className="w-4 h-4 text-slate-400" />
-          </button>
+            <div className="flex-1 text-left"><div className="text-sm font-semibold text-slate-900">{user?.regional ?? 'Belum ditetapkan'}</div><div className="text-xs text-slate-500">{user?.name ?? ''}</div></div>
+          </div>
         </div>
       </div>
     </aside>
