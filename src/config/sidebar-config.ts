@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, Folders, PieChart, Map,
-  FileText, Target, Award, UserCircle, Settings
+  FileText, Target, Award, UserCircle, Settings, Ship
 } from 'lucide-react';
 import type { SidebarNavItem } from '@/components/layout/sidebar-nav';
 
@@ -25,6 +25,7 @@ export const mainNavItems: SidebarNavItem[] = [
     ],
   },
   { label: 'Program', icon: Folders, href: '/dashboard/program' },
+  { label: 'Ekspor', icon: Ship, href: '/dashboard/ekspor' },
   { label: 'Klasifikasi', icon: Award, href: '/dashboard/klasifikasi' },
   { label: 'Analytics', icon: PieChart, href: '/dashboard/analytics' },
   { label: 'Peta Sebaran', icon: Map, href: '/dashboard/peta' },

@@ -9,6 +9,7 @@ import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
 import { umkmApi } from '@/lib/api';
 import { UMKM_CATEGORIES, DOCUMENT_TYPES } from '@/lib/constants';
+import { EXPORT_COUNTRIES } from '@/lib/countries';
 import Link from 'next/link';
 
 interface UMKMRow {
@@ -52,6 +53,8 @@ interface AdvancedFilters {
   employeeMax: string;
   omzetMin: string;
   omzetMax: string;
+  exported: string;
+  exportCountry: string;
 }
 
 const EMPTY_ADVANCED: AdvancedFilters = {
@@ -70,6 +73,8 @@ const EMPTY_ADVANCED: AdvancedFilters = {
   employeeMax: '',
   omzetMin: '',
   omzetMax: '',
+  exported: '',
+  exportCountry: '',
 };
 
 // 5S assessment option sets (value, label)
@@ -384,6 +389,33 @@ function AdvancedFilterPanel({
             </div>
           </div>
 
+          {/* Ekspor */}
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Ekspor</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Status Ekspor</label>
+                <select
+                  value={filters.exported}
+                  onChange={(e) => onChange('exported', e.target.value)}
+                  disabled={!!filters.exportCountry}
+                  className={selectClass}
+                >
+                  <option value="">Semua</option>
+                  <option value="true">Sudah Ekspor</option>
+                  <option value="false">Belum Ekspor</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Negara Tujuan</label>
+                <select value={filters.exportCountry} onChange={(e) => onChange('exportCountry', e.target.value)} className={selectClass}>
+                  <option value="">Semua</option>
+                  {EXPORT_COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
           {/* Omzet & SDM */}
           <div className="mt-4 pt-4 border-t border-slate-100">
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2">Omzet & SDM</h4>
@@ -448,6 +480,8 @@ function ActiveFilterBadges({
   if (filters.legalStatus) badges.push({ key: 'legalStatus', label: `Legalitas: ${labelOf(LEGAL_OPTS, filters.legalStatus)}` });
   if (filters.technologyLevel) badges.push({ key: 'technologyLevel', label: `Digital: ${labelOf(TECH_OPTS, filters.technologyLevel)}` });
   if (filters.supplierStatus) badges.push({ key: 'supplierStatus', label: `Supplier: ${labelOf(SUPPLIER_OPTS, filters.supplierStatus)}` });
+  if (filters.exportCountry) badges.push({ key: 'exportCountry', label: `Ekspor ke: ${filters.exportCountry}` });
+  else if (filters.exported) badges.push({ key: 'exported', label: filters.exported === 'true' ? 'Sudah Ekspor' : 'Belum Ekspor' });
   if (filters.omzetMin) badges.push({ key: 'omzetMin', label: `Omzet ≥ ${formatRp(filters.omzetMin)}` });
   if (filters.omzetMax) badges.push({ key: 'omzetMax', label: `Omzet ≤ ${formatRp(filters.omzetMax)}` });
   if (filters.employeeMin) badges.push({ key: 'employeeMin', label: `Karyawan ≥ ${filters.employeeMin}` });
@@ -547,6 +581,8 @@ export function UMKMDirectoryPage() {
     if (advanced.employeeMax) params.employeeMax = parseInt(advanced.employeeMax);
     if (advanced.omzetMin) params.omzetMin = Number(advanced.omzetMin);
     if (advanced.omzetMax) params.omzetMax = Number(advanced.omzetMax);
+    if (advanced.exportCountry) params.exportCountry = advanced.exportCountry;
+    else if (advanced.exported) params.exported = advanced.exported;
 
     umkmApi
       .list(params)

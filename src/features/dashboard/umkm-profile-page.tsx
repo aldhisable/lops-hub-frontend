@@ -8,6 +8,7 @@ import {
   AlignLeft, ChevronRight, Edit3, Clock, MapPin, X, ChevronDown, Search
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
+import { ExportRecordsManager } from '@/components/ui/export-records-manager';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
@@ -189,7 +190,7 @@ export function UMKMProfilePage({ id }: { id?: string }) {
   const provinceRef = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
 
-  const tabs = ['Overview', 'Products', 'Programs', 'Documents', 'Growth', 'Timeline'];
+  const tabs = ['Overview', 'Products', 'Programs', 'Documents', 'Growth', 'Ekspor', 'Timeline'];
   const filteredProvinces = provinces.filter(p => p.name.toLowerCase().includes(provinceSearch.toLowerCase()));
   const filteredCities = cities.filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase()));
 
@@ -869,6 +870,13 @@ export function UMKMProfilePage({ id }: { id?: string }) {
           </div>
         );
       })()}
+
+      {/* Ekspor Tab */}
+      {activeTab === 'Ekspor' && (
+        <GlassCard className="p-6">
+          <ExportRecordsManager umkmId={umkm.id} canEdit />
+        </GlassCard>
+      )}
 
       {/* Timeline Tab */}
       {activeTab === 'Timeline' && (
