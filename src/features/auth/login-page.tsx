@@ -93,9 +93,6 @@ export function LoginPage() {
             <div className="flex justify-between px-3 py-2 bg-slate-50 rounded-lg">
               <span>Admin Regional</span><span className="font-mono">regional4@pelindo.co.id / admin123</span>
             </div>
-            <div className="flex justify-between px-3 py-2 bg-slate-50 rounded-lg">
-              <span>UMKM Binaan</span><span className="font-mono">rumahlaut@umkm.id / umkm123</span>
-            </div>
           </div>
         </div>
       </GlassCard>
