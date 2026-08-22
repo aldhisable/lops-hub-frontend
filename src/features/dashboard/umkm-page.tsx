@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
 import { umkmApi } from '@/lib/api';
+import { unduhCsv } from './report-page';
 import { UMKM_CATEGORIES, DOCUMENT_TYPES } from '@/lib/constants';
 import { EXPORT_COUNTRIES } from '@/lib/countries';
 import Link from 'next/link';
@@ -526,6 +527,8 @@ export function UMKMDirectoryPage({
     const p = new URLSearchParams(window.location.search);
     setCityFilter(p.get('city') ?? '');
     setProvinceFilter(p.get('province') ?? '');
+    // Kata kunci dari pencarian global di TopBar.
+    setSearch(p.get('search') ?? '');
     const cls = p.get('classification');
     if (cls) {
       const label = cls.charAt(0) + cls.slice(1).toLowerCase();
@@ -625,6 +628,21 @@ export function UMKMDirectoryPage({
     }
   };
 
+  // Mengekspor halaman yang sedang tampil, mengikuti filter yang aktif —
+  // bukan seluruh basis data, supaya isinya sesuai dengan yang dilihat pengguna.
+  const exportCsv = () => {
+    unduhCsv(`Direktori_UMKM_${new Date().toISOString().slice(0, 10)}.csv`, [
+      ['Direktori UMKM Binaan'],
+      ['Diunduh', new Date().toLocaleString('id-ID')],
+      ['Catatan', 'Isi berkas mengikuti filter yang sedang aktif di layar'],
+      [],
+      ['Nama Usaha', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Jumlah Program'],
+      ...data.map((u) => [
+        u.name, u.city ?? '', u.province ?? '', u.classification, u._count.participations,
+      ]),
+    ]);
+  };
+
   const setAdvancedKey = (key: keyof AdvancedFilters, val: string) => {
     setAdvanced((prev) => ({ ...prev, [key]: val }));
     setPage(1);
@@ -708,7 +726,13 @@ export function UMKMDirectoryPage({
           )}
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={loading || data.length === 0}
+            title={data.length === 0 ? 'Tidak ada data untuk diekspor' : 'Unduh daftar sesuai filter yang sedang aktif'}
+            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <Download className="w-4 h-4" /> Export Data
           </button>
           {canCreate && (

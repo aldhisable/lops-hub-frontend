@@ -49,13 +49,10 @@ export function DataTable({ columns, data, className }: DataTableProps) {
         </table>
       </div>
       
-      {/* Simple Pagination Placeholder */}
-      <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between text-sm text-slate-500 bg-slate-50/30">
-        <div>Menampilkan {data.length} data</div>
-        <div className="flex space-x-2">
-          <button className="px-3 py-1 rounded-md border border-slate-200 hover:bg-slate-100 disabled:opacity-50">Prev</button>
-          <button className="px-3 py-1 rounded-md border border-slate-200 hover:bg-slate-100 disabled:opacity-50">Next</button>
-        </div>
+      {/* Paginasi sengaja tidak ada di sini: pemanggil yang memilikinya, karena
+          hanya pemanggil yang tahu total data di server. */}
+      <div className="px-6 py-3 border-t border-slate-100 text-sm text-slate-500 bg-slate-50/30">
+        Menampilkan {data.length} data
       </div>
     </GlassCard>
   );

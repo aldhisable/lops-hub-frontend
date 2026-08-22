@@ -73,7 +73,7 @@ export default function RegionalLayout({ children }: { children: React.ReactNode
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <RegionalSidebar activePath={pathname} />
       <div className="flex-1 ml-[280px] flex flex-col">
-        <TopBar userName="Admin Regional" userRole="Regional 4 - Makassar" searchPlaceholder="Cari UMKM, program, kategori, wilayah..." />
+        <TopBar />
         <main className="flex-1 p-8">{children}</main>
       </div>
     </div>

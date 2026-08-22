@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Bell, Search, HelpCircle, ChevronDown, Menu, LogOut, User, Mail, Info } from 'lucide-react'
 import { useLayout } from '@/context/layout-context'
 import { useAuth } from '@/context/auth-context'
@@ -17,8 +19,10 @@ const ROLE_LABEL: Record<string, string> = {
   UMKM: 'UMK Binaan',
 };
 
-export function TopBar({ searchPlaceholder = "Cari UMKM, wilayah, kategori, program...", userName, userRole }: TopBarProps) {
+export function TopBar({ searchPlaceholder = "Cari nama UMKM...", userName, userRole }: TopBarProps) {
   const { user: authUser, logout } = useAuth();
+  const router = useRouter();
+  const [query, setQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -30,6 +34,26 @@ export function TopBar({ searchPlaceholder = "Cari UMKM, wilayah, kategori, prog
   const displayRole = userRole ?? (authUser ? ROLE_LABEL[authUser.role] ?? authUser.role : 'Guest');
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
   const { toggleMobileSidebar } = useLayout();
+
+  // Pencarian global mengarah ke direktori UMKM milik peran yang sedang login.
+  // Peran UMKM tidak punya direktori, jadi kolomnya disembunyikan sama sekali
+  // ketimbang menampilkan kotak yang tidak melakukan apa-apa.
+  const direktori =
+    authUser?.role === 'ADMIN_PUSAT' ? '/dashboard/umkm'
+    : authUser?.role === 'ADMIN_REGIONAL' ? '/regional/umkm'
+    : null;
+
+  const halamanPengaturan =
+    authUser?.role === 'ADMIN_PUSAT' ? '/dashboard/settings'
+    : authUser?.role === 'ADMIN_REGIONAL' ? '/regional/settings'
+    : '/workspace/settings';
+
+  const cari = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!direktori) return;
+    const q = query.trim();
+    router.push(q ? `${direktori}?search=${encodeURIComponent(q)}` : direktori);
+  };
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -52,24 +76,34 @@ export function TopBar({ searchPlaceholder = "Cari UMKM, wilayah, kategori, prog
         >
           <Menu className="w-6 h-6" />
         </button>
-
-        <div className="flex-1 max-w-xl relative hidden md:block">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <input 
-          aria-label="Search" 
-          placeholder={searchPlaceholder} 
-          type="search" 
-          className="w-full bg-slate-50 border border-slate-200 text-slate-600 rounded-full pl-11 pr-16 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-        />
-        </div>
+        {direktori && (
+          <form onSubmit={cari} className="flex-1 max-w-xl relative hidden md:block">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              aria-label="Cari UMKM"
+              placeholder={searchPlaceholder}
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 text-slate-600 rounded-full pl-11 pr-16 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            />
+          </form>
+        )}
       </div>
       
-      {/* Mobile Search Icon */}
-      <div className="md:hidden flex-1 flex justify-end">
-        <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-full">
-          <Search className="w-5 h-5" />
-        </button>
-      </div>
+      {/* Mobile: langsung ke direktori, tempat pencarian tersedia lengkap */}
+      {direktori && (
+        <div className="md:hidden flex-1 flex justify-end">
+          <button
+            type="button"
+            aria-label="Cari UMKM"
+            onClick={() => router.push(direktori)}
+            className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+        </div>
+      )}
 
       <div className="flex items-center gap-4">
         {/* Notifications */}
@@ -140,9 +174,13 @@ export function TopBar({ searchPlaceholder = "Cari UMKM, wilayah, kategori, prog
                 <p className="text-sm font-semibold text-slate-900 truncate">{displayName}</p>
                 <p className="text-xs text-slate-500 truncate">{displayRole}</p>
               </div>
-              <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+              <Link
+                href={halamanPengaturan}
+                onClick={() => setDropdownOpen(false)}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+              >
                 <User className="w-4 h-4" /> Profil Saya
-              </button>
+              </Link>
               <button
                 onClick={logout}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"

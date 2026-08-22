@@ -1,66 +1,188 @@
 "use client";
 
-import React from 'react';
-import { FileText, FileSpreadsheet, FileIcon as FilePdf, Image as ImageIcon2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FileSpreadsheet, Download, Info, Loader2 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
+import { umkmApi, analyticsApi } from '@/lib/api';
+
+interface UmkmRow {
+  id: string;
+  name: string;
+  category: string;
+  city: string | null;
+  province: string | null;
+  classification: string;
+  establishedYear: number | null;
+  phone: string | null;
+  _count?: { products: number; participations: number };
+}
+
+interface DashboardStats {
+  totalUMKM: number;
+  totalProducts: number;
+  totalPrograms: number;
+  totalRevenue: number;
+  classificationDist: Array<{ classification: string; _count: { id: number } }>;
+  revenueByProvince: Array<{ province: string; total: number }>;
+}
+
+export function unduhCsv(namaBerkas: string, baris: (string | number)[][]) {
+  const csv = baris
+    .map((r) => r.map((c) => `"${String(c ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  // BOM supaya Excel membaca UTF-8 dengan benar.
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = namaBerkas;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 export function ReportPage() {
+  const [umkm, setUmkm] = useState<UmkmRow[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState('');
+
+  useEffect(() => {
+    Promise.all([umkmApi.list({ limit: 500, status: 'ACTIVE' }), analyticsApi.dashboard()])
+      .then(([listRes, statRes]) => {
+        setUmkm(listRes.data.data ?? []);
+        setStats(statRes.data);
+      })
+      .catch(() => setErr('Gagal memuat data laporan.'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const tanggal = new Date().toISOString().slice(0, 10);
+
+  const laporan = useMemo(() => {
+    if (umkm.length === 0) return [];
+
+    const perProvinsi = new Map<string, number>();
+    const perKategori = new Map<string, number>();
+    for (const u of umkm) {
+      const p = u.province ?? '(tidak diisi)';
+      perProvinsi.set(p, (perProvinsi.get(p) ?? 0) + 1);
+      perKategori.set(u.category, (perKategori.get(u.category) ?? 0) + 1);
+    }
+
+    return [
+      {
+        key: 'direktori',
+        nama: 'Direktori UMKM Nasional',
+        desc: `Daftar lengkap ${umkm.length} UMKM binaan aktif beserta klasifikasi, lokasi, dan jumlah produk.`,
+        unduh: () =>
+          unduhCsv(`Direktori_UMKM_Nasional_${tanggal}.csv`, [
+            ['Direktori UMKM Binaan Nasional'],
+            ['Diunduh', tanggal],
+            [],
+            ['Nama Usaha', 'Kategori', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Tahun Berdiri', 'Telepon', 'Jumlah Produk', 'Jumlah Program'],
+            ...umkm.map((u) => [
+              u.name, u.category, u.city ?? '', u.province ?? '', u.classification,
+              u.establishedYear ?? '', u.phone ?? '',
+              u._count?.products ?? 0, u._count?.participations ?? 0,
+            ]),
+          ]),
+      },
+      {
+        key: 'klasifikasi',
+        nama: 'Rekap Klasifikasi 5S',
+        desc: 'Jumlah UMKM per kelas Platinum, Gold, Silver, dan Bronze.',
+        unduh: () =>
+          unduhCsv(`Rekap_Klasifikasi_${tanggal}.csv`, [
+            ['Rekap Klasifikasi UMKM Nasional'],
+            ['Diunduh', tanggal],
+            [],
+            ['Kelas', 'Jumlah UMKM'],
+            ...['PLATINUM', 'GOLD', 'SILVER', 'BRONZE'].map((k) => [
+              k,
+              stats?.classificationDist.find((d) => d.classification === k)?._count.id ?? 0,
+            ]),
+            [],
+            ['Total', umkm.length],
+          ]),
+      },
+      {
+        key: 'sebaran',
+        nama: 'Sebaran Provinsi',
+        desc: 'Jumlah UMKM per provinsi, untuk memetakan konsentrasi binaan secara nasional.',
+        unduh: () =>
+          unduhCsv(`Sebaran_Provinsi_${tanggal}.csv`, [
+            ['Sebaran UMKM per Provinsi'],
+            ['Diunduh', tanggal],
+            [],
+            ['Provinsi', 'Jumlah UMKM'],
+            ...[...perProvinsi.entries()].sort((a, b) => b[1] - a[1]),
+          ]),
+      },
+      {
+        key: 'kategori',
+        nama: 'Rekap Kategori Usaha',
+        desc: 'Jumlah UMKM per kategori usaha, untuk melihat komposisi portofolio binaan.',
+        unduh: () =>
+          unduhCsv(`Rekap_Kategori_${tanggal}.csv`, [
+            ['Rekap Kategori Usaha'],
+            ['Diunduh', tanggal],
+            [],
+            ['Kategori', 'Jumlah UMKM'],
+            ...[...perKategori.entries()].sort((a, b) => b[1] - a[1]),
+          ]),
+      },
+    ];
+  }, [umkm, stats, tanggal]);
+
   return (
     <>
-      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Laporan & Export</h1>
-          <p className="text-slate-500 mt-1">Buat dan unduh laporan kinerja UMKM secara dinamis</p>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900">Laporan &amp; Export</h1>
+        <p className="text-slate-500 mt-1">Unduh rekap data UMKM binaan sebagai berkas CSV</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <GlassCard className="p-6">
-            <h3 className="font-semibold text-lg text-slate-900 mb-6">Filter Laporan</h3>
-            <form className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-slate-700">Periode Tahun</label>
-                <select className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"><option>2025</option><option>2026</option></select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-slate-700">Regional / Wilayah</label>
-                <select className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"><option>Semua Wilayah (Nasional)</option><option>Regional 1</option><option>Regional 2</option></select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium text-slate-700">Klasifikasi UMK</label>
-                <select className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"><option>Semua Klasifikasi</option><option>Platinum</option><option>Gold</option></select>
-              </div>
-              <GlowButton variant="primary" className="w-full mt-4 py-2.5 rounded-lg">Update Preview</GlowButton>
-            </form>
-          </GlassCard>
-          <GlassCard className="p-6">
-            <h3 className="font-semibold text-lg text-slate-900 mb-4">Export Options</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 bg-white hover:border-green-500 hover:bg-green-50 transition-colors group"><FileSpreadsheet className="w-8 h-8 text-slate-400 group-hover:text-green-600 mb-2 transition-colors" /><span className="text-sm font-semibold text-slate-700 group-hover:text-green-700">Excel</span><span className="text-xs text-slate-400">.xlsx</span></button>
-              <button className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 bg-white hover:border-red-500 hover:bg-red-50 transition-colors group"><FilePdf className="w-8 h-8 text-slate-400 group-hover:text-red-600 mb-2 transition-colors" /><span className="text-sm font-semibold text-slate-700 group-hover:text-red-700">PDF</span><span className="text-xs text-slate-400">.pdf</span></button>
-              <button className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-200 bg-white hover:border-blue-500 hover:bg-blue-50 transition-colors group col-span-2"><ImageIcon2 className="w-8 h-8 text-slate-400 group-hover:text-blue-600 mb-2 transition-colors" /><span className="text-sm font-semibold text-slate-700 group-hover:text-blue-700">Infographic</span><span className="text-xs text-slate-400">.png / .jpg</span></button>
-            </div>
-          </GlassCard>
-        </div>
+      {err && (
+        <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{err}</div>
+      )}
 
-        <div className="lg:col-span-8 flex flex-col">
-          <GlassCard className="p-0 overflow-hidden flex-1 flex flex-col border border-slate-200 shadow-xl shadow-slate-200/50 min-h-[600px]">
-            <div className="bg-slate-100 px-6 py-4 border-b border-slate-200 flex justify-between items-center shrink-0">
-              <h3 className="font-semibold text-slate-700">Preview Laporan</h3>
-              <div className="flex gap-2"><button className="w-3 h-3 rounded-full bg-red-400"></button><button className="w-3 h-3 rounded-full bg-amber-400"></button><button className="w-3 h-3 rounded-full bg-green-400"></button></div>
-            </div>
-            <div className="flex-1 bg-white p-12 flex flex-col items-center justify-center text-center">
-              <div className="w-[80%] max-w-lg aspect-[1/1.4] bg-slate-50 border border-slate-200 shadow-sm mx-auto flex flex-col items-center justify-center p-8 text-slate-400">
-                <FileText className="w-16 h-16 opacity-20 mb-4" />
-                <h4 className="text-xl font-bold text-slate-600">Laporan Eksekutif Nasional</h4>
-                <p className="mt-2 text-sm">Periode 2025</p>
-                <div className="w-full mt-12 flex flex-col gap-4 px-8"><div className="h-4 bg-slate-200 rounded w-full"></div><div className="h-4 bg-slate-200 rounded w-[80%]"></div><div className="h-4 bg-slate-200 rounded w-[90%]"></div><div className="h-32 bg-slate-200 rounded w-full mt-4"></div></div>
+      {loading ? (
+        <GlassCard className="p-12 flex items-center justify-center gap-2 text-slate-400">
+          <Loader2 className="w-4 h-4 animate-spin" /> Menyiapkan laporan...
+        </GlassCard>
+      ) : umkm.length === 0 ? (
+        <GlassCard className="p-12 text-center text-slate-500">
+          Belum ada UMKM aktif, jadi belum ada yang bisa dilaporkan.
+        </GlassCard>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {laporan.map((r) => (
+            <GlassCard key={r.key} className="p-6 flex flex-col hover:shadow-lg transition-shadow">
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
+                <FileSpreadsheet className="w-6 h-6" />
               </div>
-            </div>
-          </GlassCard>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{r.nama}</h3>
+              <p className="text-sm text-slate-500 mb-5 flex-1">{r.desc}</p>
+              <GlowButton
+                variant="primary"
+                onClick={r.unduh}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium w-full justify-center"
+              >
+                <Download className="w-4 h-4" /> Unduh CSV
+              </GlowButton>
+            </GlassCard>
+          ))}
         </div>
+      )}
+
+      <div className="mt-6 flex items-start gap-2 text-xs text-slate-400">
+        <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+        <span>
+          Berkas dibuat dari data yang sama dengan yang tampil di menu UMKM dan Klasifikasi.
+          Ekspor PDF dan infografis belum tersedia.
+        </span>
       </div>
     </>
   );

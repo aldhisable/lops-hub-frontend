@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Users, Folders, PieChart, Map,
-  FileText, Target, Award, UserCircle, Settings, Ship
+  FileText, Award, Settings, Ship
 } from 'lucide-react';
 import type { SidebarNavItem } from '@/components/layout/sidebar-nav';
 
@@ -30,10 +30,12 @@ export const mainNavItems: SidebarNavItem[] = [
   { label: 'Analytics', icon: PieChart, href: '/dashboard/analytics' },
   { label: 'Peta Sebaran', icon: Map, href: '/dashboard/peta' },
   { label: 'Laporan', icon: FileText, href: '/dashboard/laporan' },
-  { label: 'Target & KPI', icon: Target, href: '/dashboard/target' },
 ];
 
+// 'Target & KPI', 'Pengguna', dan 'Media & Galeri' sengaja tidak dicantumkan:
+// belum ada model Target, API manajemen pengguna, maupun penyimpanan media.
+// Munculkan kembali begitu backend-nya ada — menu yang tampak berfungsi padahal
+// kosong lebih merugikan daripada tidak ada menunya sama sekali.
 export const supportNavItems: SidebarNavItem[] = [
-  { label: 'Pengguna', icon: UserCircle, href: '/dashboard/users' },
   { label: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
 ];

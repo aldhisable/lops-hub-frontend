@@ -670,7 +670,8 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
                   {new Date(part.program.endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </p>
               </div>
-              <button className="px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shrink-0">Detail</button>
+              {/* Tombol "Detail" dihapus: tidak ada halaman rincian keikutsertaan
+                  program untuk dituju. Status dan periodenya sudah tampil di sini. */}
             </GlassCard>
           ))}
         </div>

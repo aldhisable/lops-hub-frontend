@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
 import { programsApi } from '@/lib/api';
+import { unduhCsv } from './report-page';
 
 interface Program {
   id: string;
@@ -254,6 +255,25 @@ const EMPTY_FORM: FormState = { name: '', description: '', startDate: '', endDat
 
 export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } = {}) {
   const [programs, setPrograms] = useState<Program[]>([]);
+
+  // Rekap program beserta jumlah pesertanya; untuk admin regional angka peserta
+  // sudah disaring backend ke wilayahnya sendiri.
+  const exportCsv = () => {
+    unduhCsv(`Rekap_Program_${new Date().toISOString().slice(0, 10)}.csv`, [
+      ['Rekap Program Pembinaan'],
+      ['Diunduh', new Date().toLocaleString('id-ID')],
+      [],
+      ['Nama Program', 'Status', 'Mulai', 'Selesai', 'Jumlah Peserta', 'Menunggu Persetujuan'],
+      ...programs.map((p) => [
+        p.name,
+        p.status,
+        new Date(p.startDate).toLocaleDateString('id-ID'),
+        new Date(p.endDate).toLocaleDateString('id-ID'),
+        p._count.participants,
+        p.pendingCount ?? 0,
+      ]),
+    ]);
+  };
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Semua');
   const [showModal, setShowModal] = useState(false);
@@ -340,7 +360,12 @@ export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } 
           <p className="text-slate-500 mt-1">Kelola program pembinaan dan pelatihan UMKM</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors">
+          <button
+            type="button"
+            onClick={exportCsv}
+            disabled={programs.length === 0}
+            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <Download className="w-4 h-4" /> Export
           </button>
           <GlowButton variant="primary" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" onClick={openCreate}>
