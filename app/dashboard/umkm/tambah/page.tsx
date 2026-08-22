@@ -54,7 +54,6 @@ export default function TambahUMKM() {
         name: form.ownerName,
         email: form.email,
         password: form.password,
-        role: 'UMKM',
       });
 
       // 2. Buat profil UMKM

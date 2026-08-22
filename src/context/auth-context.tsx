@@ -59,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       name: input.name,
       email: input.email,
       password: input.password,
-      role: 'UMKM',
       umkmName: input.umkmName,
       category: input.category,
     });

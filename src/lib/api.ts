@@ -33,7 +33,8 @@ api.interceptors.response.use(
 export const authApi = {
   login: (email: string, password: string) =>
     api.post<{ token: string; user: AuthUser }>('/auth/login', { email, password }),
-  register: (data: { name: string; email: string; password: string; role: string; regional?: string; umkmName?: string; category?: string }) =>
+  // Registrasi publik selalu menghasilkan akun UMKM — role ditentukan server, bukan klien.
+  register: (data: { name: string; email: string; password: string; umkmName?: string; category?: string }) =>
     api.post<{ token: string; user: AuthUser }>('/auth/register', data),
   me: () => api.get<AuthUser>('/auth/me'),
   updateAccount: (data: { name: string }) => api.patch<AuthUser>('/auth/me', data),
@@ -84,6 +85,59 @@ export const umkmApi = {
     if (!res.ok) throw new Error(data.error?.message ?? 'Cloudinary upload failed');
     return data.secure_url as string;
   },
+};
+
+// Ekspor UMKM
+export interface ExportRecord {
+  id: string;
+  umkmId: string;
+  country: string;
+  year: number;
+  value: number;
+  commodity: string;
+  createdAt?: string;
+}
+export interface ExportInput {
+  country: string;
+  year: number;
+  value: number;
+  commodity: string;
+}
+export interface ExportSummaryCountry {
+  country: string;
+  umkmCount: number;
+  value: number;
+  transactions: number;
+}
+export interface ExportSummaryRecord {
+  id: string;
+  umkmId: string;
+  umkmName: string;
+  city: string | null;
+  province: string | null;
+  classification: string | null;
+  country: string;
+  year: number;
+  value: number;
+  commodity: string;
+}
+export interface ExportSummary {
+  totalExportingUmkm: number;
+  totalValue: number;
+  totalTransactions: number;
+  totalCountries: number;
+  byCountry: ExportSummaryCountry[];
+  records: ExportSummaryRecord[];
+}
+export const exportApi = {
+  listByUmkm: (umkmId: string) => api.get<ExportRecord[]>(`/umkm/${umkmId}/exports`),
+  create: (umkmId: string, data: ExportInput) => api.post<ExportRecord>(`/umkm/${umkmId}/exports`, data),
+  update: (umkmId: string, id: string, data: Partial<ExportInput>) =>
+    api.put<ExportRecord>(`/umkm/${umkmId}/exports/${id}`, data),
+  remove: (umkmId: string, id: string) => api.delete(`/umkm/${umkmId}/exports/${id}`),
+  summary: (params?: { country?: string; year?: number }) =>
+    api.get<ExportSummary>('/exports/summary', { params }),
+  countries: () => api.get<string[]>('/exports/countries'),
 };
 
 // Programs
@@ -212,7 +266,6 @@ export const analyticsApi = {
   umkm5S: (umkmId: string) => api.get(`/analytics/5s/${umkmId}`),
   revenueTrend: (year?: number, province?: string) =>
     api.get('/analytics/revenue-trend', { params: { year, province } }),
-  addFinancial: (data: Record<string, unknown>) => api.post('/analytics/financial', data),
   mapData: (params?: { classification?: string; program?: string }) =>
     api.get<{
       byCity: Array<{ city: string; province: string; count: number }>;
