@@ -84,17 +84,9 @@ export function LoginPage() {
           <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700">Daftar sebagai UMKM</Link>
         </p>
 
-        <div className="mt-6 pt-5 border-t border-slate-100">
-          <p className="text-xs text-slate-400 text-center mb-3">Demo Akun</p>
-          <div className="flex flex-col gap-2 text-xs text-slate-500">
-            <div className="flex justify-between px-3 py-2 bg-slate-50 rounded-lg">
-              <span>Admin Pusat</span><span className="font-mono">admin@pelindo.co.id / admin123</span>
-            </div>
-            <div className="flex justify-between px-3 py-2 bg-slate-50 rounded-lg">
-              <span>Admin Regional</span><span className="font-mono">regional4@pelindo.co.id / admin123</span>
-            </div>
-          </div>
-        </div>
+        {/* Blok "Demo Akun" dihapus: halaman login publik memajang
+            admin@pelindo.co.id beserta passwordnya kepada siapa pun yang
+            membukanya, dan password itu berlaku di produksi. */}
       </GlassCard>
     </AuthLayout>
   );

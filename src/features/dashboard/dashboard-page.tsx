@@ -77,7 +77,6 @@ export function DashboardPage() {
           icon={Users}
           iconBgClass="bg-purple-50"
           iconColorClass="text-purple-600"
-          sparklineData={[10, 15, 12, 18, 25, 30, 35]}
         />
         <KPICard
           title="Total Omzet (Penjualan)"
@@ -85,7 +84,7 @@ export function DashboardPage() {
           icon={PieChart}
           iconBgClass="bg-blue-50"
           iconColorClass="text-blue-600"
-          sparklineData={[20, 22, 28, 35, 42, 50, 60]}
+          sparklineData={trendChartData.length > 1 ? trendChartData.map((t) => t.revenue) : undefined}
         />
         <KPICard
           title="Platinum + Gold"
@@ -93,7 +92,6 @@ export function DashboardPage() {
           icon={Award}
           iconBgClass="bg-amber-50"
           iconColorClass="text-amber-600"
-          sparklineData={[5, 8, 12, 15, 18, 25, 30]}
         />
         <KPICard
           title="UMKM Silver"
@@ -101,7 +99,6 @@ export function DashboardPage() {
           icon={TrendingUp}
           iconBgClass="bg-cyan-50"
           iconColorClass="text-cyan-600"
-          sparklineData={[10, 12, 15, 16, 18, 20, 24]}
         />
       </div>
 

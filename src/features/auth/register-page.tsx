@@ -101,7 +101,7 @@ export function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
+      const { data: hasilOtp, error: verifyError } = await supabase.auth.verifyOtp({
         email,
         token: otp.trim(),
         type: 'email',
@@ -111,8 +111,16 @@ export function RegisterPage() {
         return;
       }
 
-      // Email terverifikasi → buat akun aplikasi
-      const { redirectTo } = await register({ name, umkmName, category, email, password });
+      // Bawa access token-nya ke backend. Backend memeriksa ulang ke Supabase —
+      // verifikasi yang hanya dijalankan di browser bisa dilewati begitu saja
+      // dengan memanggil API-nya langsung.
+      const otpToken = hasilOtp.session?.access_token;
+      if (!otpToken) {
+        setError('Verifikasi email tidak menghasilkan sesi. Coba kirim ulang kode.');
+        return;
+      }
+
+      const { redirectTo } = await register({ name, umkmName, category, email, password, otpToken });
       router.push(redirectTo);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Pendaftaran gagal. Silakan coba lagi.');

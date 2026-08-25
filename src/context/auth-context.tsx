@@ -9,6 +9,8 @@ interface RegisterInput {
   category: string;
   email: string;
   password: string;
+  // Bukti verifikasi email dari Supabase, diperiksa ulang oleh backend.
+  otpToken?: string;
 }
 
 interface AuthContextValue {
@@ -61,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password: input.password,
       umkmName: input.umkmName,
       category: input.category,
+      otpToken: input.otpToken,
     });
     localStorage.setItem('auth_token', data.token);
     localStorage.setItem('auth_user', JSON.stringify(data.user));

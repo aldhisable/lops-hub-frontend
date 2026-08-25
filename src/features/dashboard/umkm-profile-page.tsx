@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   PieChart, FileText, Eye,
   ArrowLeft, CheckCircle2, Phone, AtSign,
@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { ExportRecordsManager } from '@/components/ui/export-records-manager';
+import { Assessment5SForm } from '@/components/ui/assessment-5s-form';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
@@ -190,7 +191,7 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
   const provinceRef = useRef<HTMLDivElement>(null);
   const cityRef = useRef<HTMLDivElement>(null);
 
-  const tabs = ['Overview', 'Products', 'Programs', 'Documents', 'Growth', 'Ekspor', 'Timeline'];
+  const tabs = ['Overview', 'Penilaian 5S', 'Products', 'Programs', 'Documents', 'Growth', 'Ekspor', 'Timeline'];
   const filteredProvinces = provinces.filter(p => p.name.toLowerCase().includes(provinceSearch.toLowerCase()));
   const filteredCities = cities.filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase()));
 
@@ -293,6 +294,28 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Dipanggil ulang setelah penilaian 5S disimpan, supaya radar dan kelas di
+  // header ikut menyesuaikan tanpa perlu memuat ulang halaman.
+  const muatUlang5S = useCallback(() => {
+    if (!id) return;
+    Promise.all([umkmApi.get(id), analyticsApi.umkm5S(id).catch(() => null)])
+      .then(([umkmRes, s5Res]) => {
+        setUmkm(umkmRes.data);
+        const p = s5Res?.data?.pillars;
+        if (p) {
+          setRadar5S([
+            { subject: 'Spread', A: p.spread.score, fullMark: 100 },
+            { subject: 'Size', A: p.size.score, fullMark: 100 },
+            { subject: 'Sustain', A: p.sustain.score, fullMark: 100 },
+            { subject: 'Share', A: p.share.score, fullMark: 100 },
+            { subject: 'Supplier', A: p.supplier.score, fullMark: 100 },
+          ]);
+          setRadar5STotal(s5Res?.data?.totalScore ?? null);
+        }
+      })
+      .catch(() => {});
+  }, [id]);
 
   useEffect(() => {
     if (!id) { setLoading(false); return; }
@@ -629,6 +652,10 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
       )}
 
       {/* Products Tab */}
+      {activeTab === 'Penilaian 5S' && id && (
+        <Assessment5SForm umkmId={id} onSaved={muatUlang5S} />
+      )}
+
       {activeTab === 'Products' && (
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
           {umkm.products.length === 0 ? (

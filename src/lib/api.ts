@@ -34,7 +34,10 @@ export const authApi = {
   login: (email: string, password: string) =>
     api.post<{ token: string; user: AuthUser }>('/auth/login', { email, password }),
   // Registrasi publik selalu menghasilkan akun UMKM — role ditentukan server, bukan klien.
-  register: (data: { name: string; email: string; password: string; umkmName?: string; category?: string }) =>
+  // `otpToken` adalah access token hasil supabase.auth.verifyOtp(); backend
+  // memvalidasinya ke Supabase. Tidak diperlukan bila pemanggilnya admin yang
+  // sudah login (form Tambah UMKM).
+  register: (data: { name: string; email: string; password: string; umkmName?: string; category?: string; otpToken?: string }) =>
     api.post<{ token: string; user: AuthUser }>('/auth/register', data),
   me: () => api.get<AuthUser>('/auth/me'),
   updateAccount: (data: { name: string }) => api.patch<AuthUser>('/auth/me', data),
