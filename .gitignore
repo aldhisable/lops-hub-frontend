@@ -24,3 +24,7 @@ out/
 *.njsproj
 *.sln
 *.sw?
+
+# Artefak build TypeScript — berubah tiap build, tidak perlu di-track
+tsconfig.tsbuildinfo
+next-env.d.ts
