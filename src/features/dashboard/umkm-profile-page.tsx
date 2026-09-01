@@ -10,6 +10,7 @@ import {
 import { GlassCard } from '@/components/ui/glass-card';
 import { ExportRecordsManager } from '@/components/ui/export-records-manager';
 import { Assessment5SForm } from '@/components/ui/assessment-5s-form';
+import { EmailAkunBadge, EmailAkunEditor, EmailAkunTrigger } from '@/components/ui/email-akun';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
@@ -127,7 +128,7 @@ interface UMKMData {
   description: string | null;
   classification: string;
   status: string;
-  user: { name: string };
+  user: { name: string; email: string | null };
   products: Array<{ id: string; name: string; category: string; price: number; stock: number | null }>;
   participations: Array<{
     status: string;
@@ -165,6 +166,7 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
   // 5S radar (segilima) — computed by backend from input UMK data
   const [radar5S, setRadar5S] = useState(RADAR_EMPTY);
   const [radar5STotal, setRadar5STotal] = useState<number | null>(null);
+  const [kelolaEmail, setKelolaEmail] = useState(false);
 
   // Edit profile modal state
   const [showEditModal, setShowEditModal] = useState(false);
@@ -514,6 +516,18 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
         </div>
       </div>
 
+      {kelolaEmail && (
+        <EmailAkunEditor
+          umkmId={umkm.id}
+          umkmName={umkm.name}
+          email={umkm.user?.email}
+          onClose={() => setKelolaEmail(false)}
+          onSaved={(emailBaru) =>
+            setUmkm((p) => (p ? { ...p, user: { ...p.user, email: emailBaru } } : p))
+          }
+        />
+      )}
+
       {/* Identity Card */}
       <GlassCard className="p-6 mb-8">
         <div className="flex flex-col lg:flex-row gap-6">
@@ -530,6 +544,11 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
             </div>
             <div className="grid grid-cols-[auto_1fr] gap-x-8 gap-y-1.5 text-sm mb-4">
               <span className="text-slate-500">Owner</span><span className="font-medium text-slate-800">{umkm.user?.name ?? '—'}</span>
+              <span className="text-slate-500">Email Akun</span>
+              <span className="flex flex-wrap items-center gap-2">
+                <EmailAkunBadge email={umkm.user?.email} />
+                <EmailAkunTrigger onClick={() => setKelolaEmail(true)} />
+              </span>
               <span className="text-slate-500">Kategori</span><span className="font-medium text-slate-800">{umkm.category}</span>
               {umkm.establishedYear && <><span className="text-slate-500">Berdiri Sejak</span><span className="font-medium text-slate-800">{umkm.establishedYear}</span></>}
               <span className="text-slate-500">Kota / Provinsi</span><span className="font-medium text-slate-800">{[umkm.city, umkm.province].filter(Boolean).join(', ') || '—'}</span>

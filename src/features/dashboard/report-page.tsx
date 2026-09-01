@@ -15,6 +15,7 @@ interface UmkmRow {
   classification: string;
   establishedYear: number | null;
   phone: string | null;
+  user?: { email: string | null };
   _count?: { products: number; participations: number };
 }
 
@@ -82,9 +83,11 @@ export function ReportPage() {
             ['Direktori UMKM Binaan Nasional'],
             ['Diunduh', tanggal],
             [],
-            ['Nama Usaha', 'Kategori', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Tahun Berdiri', 'Telepon', 'Jumlah Produk', 'Jumlah Program'],
+            ['Nama Usaha', 'Kategori', 'Email Akun', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Tahun Berdiri', 'Telepon', 'Jumlah Produk', 'Jumlah Program'],
             ...umkm.map((u) => [
-              u.name, u.category, u.city ?? '', u.province ?? '', u.classification,
+              u.name, u.category,
+              u.user?.email && u.user.email.includes('@') ? u.user.email : 'BELUM ADA EMAIL',
+              u.city ?? '', u.province ?? '', u.classification,
               u.establishedYear ?? '', u.phone ?? '',
               u._count?.products ?? 0, u._count?.participations ?? 0,
             ]),

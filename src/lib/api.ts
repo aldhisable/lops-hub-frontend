@@ -61,6 +61,12 @@ export const umkmApi = {
   update: (id: string, data: Record<string, unknown>) => api.put(`/umkm/${id}`, data),
   delete: (id: string) => api.delete(`/umkm/${id}`),
   archive: (id: string) => api.put(`/umkm/${id}`, { status: 'INACTIVE' }),
+  // Kelola email akun UMKM. Kirim null untuk mengosongkannya — akun itu lalu
+  // tidak bisa login sampai admin mengisi email baru.
+  updateEmail: (id: string, email: string | null) =>
+    api.patch<{ email: string | null; status: 'email' | 'telepon' | 'slug' | 'kosong'; punyaEmail: boolean; sebelumnya: string | null }>(
+      `/umkm/${id}/email`, { email },
+    ),
   products: (umkmId: string) => api.get(`/umkm/${umkmId}/products`),
   createProduct: (umkmId: string, data: Record<string, unknown>) => api.post(`/umkm/${umkmId}/products`, data),
   updateProduct: (umkmId: string, productId: string, data: Record<string, unknown>) =>

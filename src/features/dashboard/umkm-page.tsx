@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
 import { umkmApi } from '@/lib/api';
+import { EmailAkunBadge } from '@/components/ui/email-akun';
 import { unduhCsv } from './report-page';
 import { UMKM_CATEGORIES, DOCUMENT_TYPES } from '@/lib/constants';
 import { EXPORT_COUNTRIES } from '@/lib/countries';
@@ -20,6 +21,7 @@ interface UMKMRow {
   province: string | null;
   classification: string;
   status: string;
+  user?: { name?: string; email: string | null };
   _count: { participations: number };
 }
 
@@ -56,6 +58,7 @@ interface AdvancedFilters {
   omzetMax: string;
   exported: string;
   exportCountry: string;
+  tanpaEmail: string;
 }
 
 const EMPTY_ADVANCED: AdvancedFilters = {
@@ -76,6 +79,7 @@ const EMPTY_ADVANCED: AdvancedFilters = {
   omzetMax: '',
   exported: '',
   exportCountry: '',
+  tanpaEmail: '',
 };
 
 // 5S assessment option sets (value, label)
@@ -408,6 +412,18 @@ function AdvancedFilterPanel({
                   <option value="false">Belum Ekspor</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Email Akun</label>
+                <select
+                  value={filters.tanpaEmail}
+                  onChange={(e) => onChange('tanpaEmail', e.target.value)}
+                  className={selectClass}
+                >
+                  <option value="">Semua</option>
+                  <option value="true">Belum ada email</option>
+                </select>
+              </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Negara Tujuan</label>
                 <select value={filters.exportCountry} onChange={(e) => onChange('exportCountry', e.target.value)} className={selectClass}>
@@ -484,6 +500,7 @@ function ActiveFilterBadges({
   if (filters.supplierStatus) badges.push({ key: 'supplierStatus', label: `Supplier: ${labelOf(SUPPLIER_OPTS, filters.supplierStatus)}` });
   if (filters.exportCountry) badges.push({ key: 'exportCountry', label: `Ekspor ke: ${filters.exportCountry}` });
   else if (filters.exported) badges.push({ key: 'exported', label: filters.exported === 'true' ? 'Sudah Ekspor' : 'Belum Ekspor' });
+  if (filters.tanpaEmail) badges.push({ key: 'tanpaEmail', label: 'Belum ada email' });
   if (filters.omzetMin) badges.push({ key: 'omzetMin', label: `Omzet ≥ ${formatRp(filters.omzetMin)}` });
   if (filters.omzetMax) badges.push({ key: 'omzetMax', label: `Omzet ≤ ${formatRp(filters.omzetMax)}` });
   if (filters.employeeMin) badges.push({ key: 'employeeMin', label: `Karyawan ≥ ${filters.employeeMin}` });
@@ -595,6 +612,7 @@ export function UMKMDirectoryPage({
     if (advanced.omzetMax) params.omzetMax = Number(advanced.omzetMax);
     if (advanced.exportCountry) params.exportCountry = advanced.exportCountry;
     else if (advanced.exported) params.exported = advanced.exported;
+    if (advanced.tanpaEmail) params.tanpaEmail = advanced.tanpaEmail;
 
     umkmApi
       .list(params)
@@ -636,9 +654,12 @@ export function UMKMDirectoryPage({
       ['Diunduh', new Date().toLocaleString('id-ID')],
       ['Catatan', 'Isi berkas mengikuti filter yang sedang aktif di layar'],
       [],
-      ['Nama Usaha', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Jumlah Program'],
+      ['Nama Usaha', 'Email Akun', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Jumlah Program'],
       ...data.map((u) => [
-        u.name, u.city ?? '', u.province ?? '', u.classification, u._count.participations,
+        u.name,
+        // Penanda bawaan impor (nomor telepon / slug) bukan email terdaftar.
+        u.user?.email && u.user.email.includes('@') ? u.user.email : 'BELUM ADA EMAIL',
+        u.city ?? '', u.province ?? '', u.classification, u._count.participations,
       ]),
     ]);
   };
@@ -659,6 +680,11 @@ export function UMKMDirectoryPage({
           {val}
         </Link>
       ),
+    },
+    {
+      header: 'Email Akun',
+      accessor: 'user' as const,
+      render: (val: UMKMRow['user']) => <EmailAkunBadge email={val?.email} />,
     },
     { header: 'Kota / Kabupaten', accessor: 'city' as const, render: (val: string | null) => val ?? '—' },
     { header: 'Provinsi', accessor: 'province' as const, render: (val: string | null) => val ?? '—' },
