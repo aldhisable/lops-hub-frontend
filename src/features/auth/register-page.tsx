@@ -40,22 +40,46 @@ export function RegisterPage() {
     return () => clearInterval(t);
   }, [cooldown]);
 
-  const sendOtp = async () => {
-    if (!supabase) {
-      setError('Verifikasi email belum dikonfigurasi (Supabase). Hubungi admin.');
-      return false;
+  // Hasil percobaan mengirim OTP.
+  //
+  // 'terkirim'       kode sudah dikirim, lanjut ke langkah verifikasi
+  // 'tak-tersedia'   layanan verifikasi belum dikonfigurasi atau tidak bisa
+  //                  dihubungi — pendaftaran diteruskan tanpa OTP, dan backend
+  //                  memang tidak menuntutnya selama Supabase belum terpasang
+  // 'gagal'          layanan hidup tetapi menolak; tampilkan pesannya
+  type HasilKirim = 'terkirim' | 'tak-tersedia' | 'gagal';
+
+  const sendOtp = async (): Promise<HasilKirim> => {
+    if (!supabase) return 'tak-tersedia';
+
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: true },
+      });
+      if (otpError) {
+        // Galat jaringan berarti proyek Supabase tidak bisa dihubungi; itu soal
+        // konfigurasi, bukan kesalahan pendaftar, jadi jangan menghadangnya.
+        const pesan = otpError.message ?? '';
+        if (/fetch|network|Failed to fetch|ENOTFOUND/i.test(pesan)) return 'tak-tersedia';
+        setError(pesan || 'Gagal mengirim kode OTP.');
+        return 'gagal';
+      }
+    } catch {
+      return 'tak-tersedia';
     }
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: true },
-    });
-    if (otpError) {
-      setError(otpError.message || 'Gagal mengirim kode OTP.');
-      return false;
-    }
+
     setCooldown(RESEND_COOLDOWN);
     setInfo(`Kode OTP telah dikirim ke ${email}.`);
-    return true;
+    return 'terkirim';
+  };
+
+  // Buat akun tanpa langkah OTP. Dipakai bila layanan verifikasi email belum
+  // tersedia — backend menerima ini karena penegakan OTP di sana mengikuti
+  // ketersediaan konfigurasi Supabase yang sama.
+  const daftarTanpaOtp = async () => {
+    const { redirectTo } = await register({ name, umkmName, category, email, password });
+    router.push(redirectTo);
   };
 
   // Langkah 1: validasi form lalu kirim OTP
@@ -79,10 +103,15 @@ export function RegisterPage() {
 
     setIsLoading(true);
     try {
-      if (await sendOtp()) {
+      const hasil = await sendOtp();
+      if (hasil === 'terkirim') {
         setOtp('');
         setPhase('otp');
+      } else if (hasil === 'tak-tersedia') {
+        await daftarTanpaOtp();
       }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Pendaftaran gagal. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }

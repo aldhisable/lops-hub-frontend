@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { PieChart, TrendingUp, ShoppingBag, Users2, CheckCircle2, Clock, AtSign, Phone, Globe, MapPin, AlignLeft, Info, PackageOpen } from 'lucide-react';
+import { PieChart, TrendingUp, ShoppingBag, Users2, CheckCircle2, Clock, AtSign, Phone, Globe, MapPin, AlignLeft, Info, PackageOpen, ClipboardList, Wallet, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { GlassCard } from '@/components/ui/glass-card';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
@@ -21,6 +22,10 @@ interface Score5S {
   totalScore: number;
   pillars: Record<string, { score: number; weight: number }>;
   assessment: { employeeCount?: number | null } | null;
+  complete?: boolean;
+  completeness?: number;
+  filledCount?: number;
+  indicatorCount?: number;
 }
 interface FinRow { month: number; year: number; revenue: number; profit?: number }
 
@@ -30,6 +35,74 @@ function initials(name: string) {
 function fmtDate(iso?: string) {
   if (!iso) return '';
   return new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// Ajakan melengkapi data yang hanya bisa diisi UMKM sendiri.
+//
+// Kelas 5S baru bisa ditetapkan setelah kesepuluh indikatornya lengkap, dan
+// tujuh di antaranya cuma pemilik usaha yang tahu. Tanpa ajakan ini, formulirnya
+// ada tetapi tidak pernah ditemukan — persis yang terjadi selama ini: nol UMKM
+// mengisi data 5S.
+function AjakanLengkapi({ score5S, adaOmzet }: { score5S: Score5S | null; adaOmzet: boolean }) {
+  const lengkap5S = score5S?.complete === true;
+  const terisi = score5S?.filledCount ?? 0;
+  const dari = score5S?.indicatorCount ?? 10;
+  const persen = score5S?.completeness ?? 0;
+
+  if (lengkap5S && adaOmzet) return null;
+
+  return (
+    <GlassCard className="p-6 mb-8 border-amber-200 bg-gradient-to-br from-amber-50/60 to-white">
+      <div className="flex items-start gap-3 mb-4">
+        <div className="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+          <ClipboardList className="w-4 h-4" />
+        </div>
+        <div>
+          <h3 className="font-bold text-slate-900">Lengkapi data usaha Anda</h3>
+          <p className="text-sm text-slate-600 mt-0.5">
+            Data berikut hanya bisa diisi dari akun Anda sendiri, dan menentukan kelas 5S usaha Anda.
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {!lengkap5S && (
+          <Link
+            href="/workspace/analytics"
+            className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all"
+          >
+            <ClipboardList className="w-5 h-5 text-blue-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-slate-800">Penilaian 5S</div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                {terisi} dari {dari} indikator terisi ({persen}%)
+              </div>
+              <div className="mt-2 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${persen}%` }} />
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 shrink-0" />
+          </Link>
+        )}
+
+        {!adaOmzet && (
+          <Link
+            href="/workspace/omzet"
+            className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-300 hover:shadow-sm transition-all"
+          >
+            <Wallet className="w-5 h-5 text-emerald-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-semibold text-slate-800">Laporan Omzet</div>
+              <div className="text-xs text-slate-500 mt-0.5">
+                Belum ada omzet tercatat. Isi omzet bulanan agar pertumbuhan usaha Anda terukur.
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-blue-500 shrink-0" />
+          </Link>
+        )}
+      </div>
+    </GlassCard>
+  );
 }
 
 function EmptyState({ text, icon: Icon = Info }: { text: string; icon?: React.ComponentType<{ className?: string }> }) {
@@ -91,6 +164,8 @@ export default function WorkspaceDashboard() {
         <h1 className="text-3xl font-black text-slate-900">Selamat Datang, {ownerName} 👋</h1>
         <p className="text-slate-500 mt-1">Berikut ringkasan usaha <strong className="text-slate-700">{umkmName}</strong> Anda hari ini</p>
       </div>
+
+      <AjakanLengkapi score5S={score5S} adaOmzet={financials.length > 0} />
 
       {/* Identity Card */}
       <GlassCard className="p-6 mb-8">
