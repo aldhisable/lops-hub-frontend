@@ -28,8 +28,8 @@ type SidebarNavProps = {
   items: SidebarNavItem[]
   supportItems?: SidebarNavItem[]
   activePath?: string
-  /** When set, every item except this href is locked (non-clickable). Used while a UMKM awaits verification. */
-  lockExceptHref?: string
+  /** When set, only these hrefs remain clickable while a UMKM awaits verification. */
+  lockExceptHref?: string | readonly string[]
 }
 
 export function SidebarNav({
@@ -94,9 +94,10 @@ function NavList({
   activePath: string
   items: SidebarNavItem[]
   onClose?: () => void
-  lockExceptHref?: string
+  lockExceptHref?: string | readonly string[]
   collapsed?: boolean
 }) {
+  const allowedHrefs = typeof lockExceptHref === 'string' ? [lockExceptHref] : lockExceptHref;
   return (
     <nav className="flex flex-col gap-1">
       {items.map((item) => (
@@ -105,7 +106,7 @@ function NavList({
           item={item}
           activePath={activePath}
           onClose={onClose}
-          locked={!!lockExceptHref && item.href !== lockExceptHref}
+          locked={!!allowedHrefs && !allowedHrefs.includes(item.href)}
           collapsed={collapsed}
         />
       ))}

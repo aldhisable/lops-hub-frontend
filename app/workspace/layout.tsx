@@ -11,6 +11,7 @@ import { useAuth } from '@/context/auth-context';
 import { WorkspaceProvider, useWorkspace } from '@/context/workspace-context';
 
 const PROFIL_HREF = '/workspace/profil';
+const PENDING_ALLOWED_HREFS = [PROFIL_HREF, '/workspace/settings'];
 
 function PendingBanner() {
   return (
@@ -19,8 +20,8 @@ function PendingBanner() {
       <div>
         <p className="text-sm font-semibold text-amber-800">Akun menunggu verifikasi admin</p>
         <p className="text-sm text-amber-700 mt-0.5">
-          Lengkapi profil usaha Anda di bawah ini selengkap mungkin. Setelah diverifikasi admin,
-          seluruh fitur workspace akan terbuka.
+          Lengkapi profil usaha Anda selengkap mungkin. Pengaturan akun dan ganti password tetap tersedia.
+          Fitur workspace lainnya akan terbuka setelah diverifikasi admin.
         </p>
       </div>
     </div>
@@ -35,9 +36,9 @@ function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
   const isPending = !loading && umkm?.status === 'PENDING';
 
-  // UMKM yang masih PENDING hanya boleh mengisi profil — paksa kembali ke halaman profil
+  // PENDING boleh melengkapi profil dan mengamankan akun lewat Pengaturan.
   useEffect(() => {
-    if (isPending && pathname !== PROFIL_HREF) {
+    if (isPending && !PENDING_ALLOWED_HREFS.includes(pathname)) {
       router.replace(PROFIL_HREF);
     }
   }, [isPending, pathname, router]);
@@ -48,14 +49,14 @@ function WorkspaceShell({ children }: { children: React.ReactNode }) {
       items={umkmMainNavItems}
       supportItems={umkmSupportNavItems}
       activePath={pathname}
-      lockExceptHref={isPending ? PROFIL_HREF : undefined}
+      lockExceptHref={isPending ? PENDING_ALLOWED_HREFS : undefined}
     />
   );
 
   return (
     <InternalLayout sidebar={sidebar} topbar={<TopBar userName={user?.name ?? 'UMKM'} userRole="UMK Binaan" />}>
       {isPending && <PendingBanner />}
-      {isPending && pathname !== PROFIL_HREF ? null : children}
+      {loading || (isPending && !PENDING_ALLOWED_HREFS.includes(pathname)) ? null : children}
     </InternalLayout>
   );
 }
