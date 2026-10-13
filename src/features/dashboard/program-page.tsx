@@ -6,6 +6,7 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
 import { programsApi } from '@/lib/api';
+import { useAuth } from '@/context/auth-context';
 import { unduhCsv } from './report-page';
 
 interface Program {
@@ -66,7 +67,7 @@ function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function ProgramMenu({ onManage, onEdit, onDelete }: { onManage: () => void; onEdit: () => void; onDelete: () => void }) {
+function ProgramMenu({ canManageProgram, onManage, onEdit, onDelete }: { canManageProgram: boolean; onManage: () => void; onEdit: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -93,6 +94,7 @@ function ProgramMenu({ onManage, onEdit, onDelete }: { onManage: () => void; onE
           >
             <Users className="w-4 h-4 text-emerald-500" /> Kelola Peserta
           </button>
+          {canManageProgram && <>
           <button
             onClick={e => { e.stopPropagation(); setOpen(false); onEdit(); }}
             className="w-full flex items-center gap-2 px-4 py-2.5 text-slate-700 hover:bg-slate-50 transition-colors"
@@ -105,6 +107,7 @@ function ProgramMenu({ onManage, onEdit, onDelete }: { onManage: () => void; onE
           >
             <Trash2 className="w-4 h-4" /> Hapus
           </button>
+          </>}
         </div>
       )}
     </div>
@@ -254,6 +257,8 @@ function ParticipantsModal({ program, onClose, onChanged }: { program: Program; 
 const EMPTY_FORM: FormState = { name: '', description: '', startDate: '', endDate: '', status: 'UPCOMING' };
 
 export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } = {}) {
+  const { user } = useAuth();
+  const canManageProgram = user?.role === 'ADMIN_PUSAT';
   const [programs, setPrograms] = useState<Program[]>([]);
 
   // Rekap program beserta jumlah pesertanya; untuk admin regional angka peserta
@@ -306,6 +311,7 @@ export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } 
   const closeModal = () => { setShowModal(false); setEditTarget(null); };
 
   const handleDelete = async (id: string, name: string) => {
+    if (!canManageProgram) return;
     if (!confirm(`Hapus program "${name}"? Tindakan ini tidak bisa dibatalkan.`)) return;
     try {
       await programsApi.delete(id);
@@ -317,6 +323,7 @@ export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageProgram) return;
     setFormError('');
     if (!form.name || !form.startDate || !form.endDate) {
       setFormError('Nama, tanggal mulai, dan tanggal selesai wajib diisi.');
@@ -368,9 +375,9 @@ export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } 
           >
             <Download className="w-4 h-4" /> Export
           </button>
-          <GlowButton variant="primary" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" onClick={openCreate}>
+          {canManageProgram && <GlowButton variant="primary" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium" onClick={openCreate}>
             <Plus className="w-4 h-4" /> Tambah Program
-          </GlowButton>
+          </GlowButton>}
         </div>
       </div>
 
@@ -403,7 +410,7 @@ export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } 
                       </span>
                     )}
                   </div>
-                  <ProgramMenu onManage={() => setManageTarget(prog)} onEdit={() => openEdit(prog)} onDelete={() => handleDelete(prog.id, prog.name)} />
+                  <ProgramMenu canManageProgram={canManageProgram} onManage={() => setManageTarget(prog)} onEdit={() => openEdit(prog)} onDelete={() => handleDelete(prog.id, prog.name)} />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2">{prog.name}</h3>
                 <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
@@ -424,7 +431,7 @@ export function ProgramPage({ title = 'Manajemen Program' }: { title?: string } 
       )}
 
       {/* Modal Tambah / Edit Program */}
-      {showModal && (
+      {canManageProgram && showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <GlassCard className="glass-modal w-full max-w-lg p-8 relative">
             <button onClick={closeModal} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-lg text-slate-400">
