@@ -67,6 +67,15 @@ export const umkmApi = {
     api.patch<{ email: string | null; status: 'email' | 'telepon' | 'slug' | 'kosong'; punyaEmail: boolean; sebelumnya: string | null }>(
       `/umkm/${id}/email`, { email },
     ),
+  // Promosikan/ubah klasifikasi UMKM secara manual (mode MANUAL, classification
+  // wajib diisi), atau kembalikan ke mode otomatis mengikuti mesin 5S (mode AUTO).
+  promoteClassification: (
+    id: string,
+    body: { mode: 'MANUAL'; classification: Klasifikasi } | { mode: 'AUTO' },
+  ) =>
+    api.patch<{ classification: Klasifikasi; classificationSource: ClassificationSource; scoring: Scoring5SResult | null }>(
+      `/umkm/${id}/classification`, body,
+    ),
   products: (umkmId: string) => api.get(`/umkm/${umkmId}/products`),
   createProduct: (umkmId: string, data: Record<string, unknown>) => api.post(`/umkm/${umkmId}/products`, data),
   updateProduct: (umkmId: string, productId: string, data: Record<string, unknown>) =>
@@ -249,11 +258,19 @@ export interface Assessment5SInput {
   assetGrowthMillion?: number | null;
 }
 
+export type Klasifikasi = 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM';
+// AUTO: mengikuti hitungan mesin 5S. MANUAL: admin sudah mempromosikan/menetapkan
+// kelasnya sendiri — recalc otomatis tidak menimpanya sampai dikembalikan ke AUTO.
+export type ClassificationSource = 'AUTO' | 'MANUAL';
+
 export interface Scoring5SResult {
-  classification: 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | null;
+  classification: Klasifikasi | null;
   score: number | null;
   completeness: number;
   complete: boolean;
+  // Hanya ada saat scoring ini hasil recalc otomatis (bukan promosi manual):
+  // true bila rekomendasi di atas benar-benar ditulis ke UMKM.classification.
+  applied?: boolean;
 }
 
 // Assessment (5S indicator data input by UMKM & admin)
@@ -285,6 +302,22 @@ export interface PublicStats {
   revenueTrend: Array<{ year: number; month: number; revenue: number }>;
 }
 
+export interface Umkm5SDetail {
+  totalScore: number;
+  assessed: boolean;
+  complete: boolean;
+  completeness: number;
+  filledCount: number;
+  indicatorCount: number;
+  classification: Klasifikasi | null;
+  pillars: Record<'spread' | 'size' | 'sustain' | 'share' | 'supplier', { score: number; weight: number; assessed: boolean }>;
+  indicators: Array<{ id: string; pillar: string; label: string; source: 'computed' | 'input'; score: number; filled: boolean }>;
+  currentClassification: Klasifikasi;
+  classificationSource: ClassificationSource;
+  // Rekomendasi sistem dari skor 5S saat ini — null bila datanya belum lengkap.
+  suggestedClassification: Klasifikasi | null;
+}
+
 export const analyticsApi = {
   publicStats: () => api.get<PublicStats>('/analytics/public'),
   dashboard: () => api.get('/analytics/dashboard'),
@@ -293,7 +326,7 @@ export const analyticsApi = {
   workspace5S: () => api.get('/analytics/workspace/5s'),
   aggregate5S: () => api.get('/analytics/5s-aggregate'),
   perUmkm5S: () => api.get('/analytics/5s-per-umkm'),
-  umkm5S: (umkmId: string) => api.get(`/analytics/5s/${umkmId}`),
+  umkm5S: (umkmId: string) => api.get<Umkm5SDetail>(`/analytics/5s/${umkmId}`),
   revenueTrend: (year?: number, province?: string) =>
     api.get('/analytics/revenue-trend', { params: { year, province } }),
   mapData: (params?: { classification?: string; program?: string }) =>

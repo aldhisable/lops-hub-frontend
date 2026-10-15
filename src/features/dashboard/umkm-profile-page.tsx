@@ -10,11 +10,12 @@ import {
 import { GlassCard } from '@/components/ui/glass-card';
 import { ExportRecordsManager } from '@/components/ui/export-records-manager';
 import { Assessment5SForm } from '@/components/ui/assessment-5s-form';
+import { ClassificationPromoteCard } from '@/components/ui/classification-promote';
 import { EmailAkunBadge, EmailAkunEditor, EmailAkunTrigger } from '@/components/ui/email-akun';
 import { RadarChart } from '@/components/ui/radar-chart';
 import { AnalyticsChart } from '@/components/ui/analytics-chart';
 import { GlowButton } from '@/components/ui/glow-button';
-import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile, analyticsApi, API_BASE } from '@/lib/api';
+import { umkmApi, lopsSalesApi, documentsApi, openDocumentFile, analyticsApi, API_BASE, type Klasifikasi, type ClassificationSource } from '@/lib/api';
 import { UMKM_CATEGORIES } from '@/lib/constants';
 import { formatCompactRupiah, formatRupiah } from '@/lib/currency';
 import { useAuth } from '@/context/auth-context';
@@ -126,7 +127,7 @@ interface UMKMData {
   instagram: string | null;
   website: string | null;
   description: string | null;
-  classification: string;
+  classification: Klasifikasi;
   status: string;
   user: { name: string; email: string | null };
   products: Array<{ id: string; name: string; category: string; price: number; stock: number | null }>;
@@ -166,6 +167,10 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
   // 5S radar (segilima) — computed by backend from input UMK data
   const [radar5S, setRadar5S] = useState(RADAR_EMPTY);
   const [radar5STotal, setRadar5STotal] = useState<number | null>(null);
+  // Klasifikasi resmi vs rekomendasi sistem (skor 5S saat ini) — dipakai kartu
+  // promosi klasifikasi manual di tab Penilaian 5S.
+  const [classificationSource, setClassificationSource] = useState<ClassificationSource>('AUTO');
+  const [suggestedClassification, setSuggestedClassification] = useState<Klasifikasi | null>(null);
   const [kelolaEmail, setKelolaEmail] = useState(false);
 
   // Edit profile modal state
@@ -315,6 +320,10 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
           ]);
           setRadar5STotal(s5Res?.data?.totalScore ?? null);
         }
+        if (s5Res?.data) {
+          setClassificationSource(s5Res.data.classificationSource ?? 'AUTO');
+          setSuggestedClassification(s5Res.data.suggestedClassification ?? null);
+        }
       })
       .catch(() => {});
   }, [id]);
@@ -339,6 +348,10 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
             { subject: 'Supplier', A: p.supplier.score, fullMark: 100 },
           ]);
           setRadar5STotal(s5Res?.data?.totalScore ?? null);
+        }
+        if (s5Res?.data) {
+          setClassificationSource(s5Res.data.classificationSource ?? 'AUTO');
+          setSuggestedClassification(s5Res.data.suggestedClassification ?? null);
         }
       })
       .catch(() => {})
@@ -670,9 +683,24 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
         </>
       )}
 
-      {/* Products Tab */}
+      {/* Penilaian 5S Tab */}
       {activeTab === 'Penilaian 5S' && id && (
-        <Assessment5SForm umkmId={id} onSaved={muatUlang5S} />
+        <>
+          {isAdmin && (
+            <ClassificationPromoteCard
+              umkmId={id}
+              current={umkm.classification}
+              source={classificationSource}
+              suggested={suggestedClassification}
+              score={radar5STotal}
+              onChanged={({ classification, classificationSource: newSource }) => {
+                setUmkm((p) => (p ? { ...p, classification } : p));
+                setClassificationSource(newSource);
+              }}
+            />
+          )}
+          <Assessment5SForm umkmId={id} onSaved={muatUlang5S} />
+        </>
       )}
 
       {activeTab === 'Products' && (
