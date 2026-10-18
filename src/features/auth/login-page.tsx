@@ -84,9 +84,6 @@ export function LoginPage() {
           <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700">Daftar sebagai UMKM</Link>
         </p>
 
-        {/* Blok "Demo Akun" dihapus: halaman login publik memajang
-            admin@pelindo.co.id beserta passwordnya kepada siapa pun yang
-            membukanya, dan password itu berlaku di produksi. */}
       </GlassCard>
     </AuthLayout>
   );
