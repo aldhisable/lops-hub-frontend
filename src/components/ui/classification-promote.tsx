@@ -99,9 +99,9 @@ export function ClassificationPromoteCard({
             <ShieldCheck className="w-3.5 h-3.5" /> Klasifikasi Resmi
           </div>
           <Lencana kelas={current} />
-          <p className="text-xs text-slate-400 mt-2">
-            {source === 'MANUAL' ? 'Ditetapkan manual oleh admin.' : 'Mengikuti hitungan otomatis mesin 5S.'}
-          </p>
+          {source === 'MANUAL' && (
+            <p className="text-xs text-slate-400 mt-2">Ditetapkan manual oleh admin.</p>
+          )}
         </div>
         <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-4">
           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-2">
