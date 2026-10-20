@@ -8,6 +8,7 @@ import { DataTable } from '@/components/ui/data-table';
 import { FilterChips } from '@/components/ui/filter-chips';
 import { GlowButton } from '@/components/ui/glow-button';
 import { umkmApi } from '@/lib/api';
+import { useAuth } from '@/context/auth-context';
 import { EmailAkunBadge } from '@/components/ui/email-akun';
 import { unduhCsv } from './report-page';
 import { UMKM_CATEGORIES, DOCUMENT_TYPES } from '@/lib/constants';
@@ -21,7 +22,7 @@ interface UMKMRow {
   province: string | null;
   classification: string;
   status: string;
-  user?: { name?: string; email: string | null };
+  user?: { name?: string; email: string | null; regional?: string | null };
   _count: { participations: number };
 }
 
@@ -41,6 +42,7 @@ interface FilterOptions {
 }
 
 interface AdvancedFilters {
+  regional: string;
   province: string;
   category: string;
   programId: string;
@@ -62,6 +64,7 @@ interface AdvancedFilters {
 }
 
 const EMPTY_ADVANCED: AdvancedFilters = {
+  regional: '',
   province: '',
   category: '',
   programId: '',
@@ -84,6 +87,7 @@ const EMPTY_ADVANCED: AdvancedFilters = {
 
 // 5S assessment option sets (value, label)
 type Opt = [string, string];
+const REGIONAL_OPTIONS = ['REGIONAL 1', 'REGIONAL 2', 'REGIONAL 3', 'REGIONAL 4'];
 const MARKET_REACH_OPTS: Opt[] = [['LOCAL', 'Lokal'], ['REGIONAL', 'Regional'], ['NATIONAL', 'Nasional'], ['EXPORT', 'Ekspor']];
 const EXHIBITION_OPTS: Opt[] = [['NONE', 'Belum pernah'], ['ANY', 'Pernah (semua skala)'], ['LOCAL', 'Lokal'], ['PROVINCIAL', 'Provinsi'], ['NATIONAL', 'Nasional'], ['INTERNATIONAL', 'Internasional']];
 const LEGAL_OPTS: Opt[] = [['NONE', 'Belum ada'], ['PERMIT', 'Izin Usaha'], ['PERMIT_PRODUCT', 'Izin Usaha + Produk'], ['FULL', 'Lengkap']];
@@ -223,12 +227,16 @@ function ConfirmModal({ confirm, loading, onCancel, onConfirm }: {
 function AdvancedFilterPanel({
   filters,
   options,
+  regionalOptions,
+  regionalOnly,
   onChange,
   onReset,
   activeCount,
 }: {
   filters: AdvancedFilters;
   options: FilterOptions;
+  regionalOptions: string[];
+  regionalOnly: boolean;
   onChange: (key: keyof AdvancedFilters, val: string) => void;
   onReset: () => void;
   activeCount: number;
@@ -280,6 +288,14 @@ function AdvancedFilterPanel({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label htmlFor="filter-regional" className="block text-xs font-semibold text-slate-600 mb-1">Regional Binaan</label>
+              <select id="filter-regional" value={filters.regional} onChange={(e) => onChange('regional', e.target.value)} className={selectClass} disabled={regionalOptions.length === 0}>
+                <option value="">{regionalOnly ? 'Wilayah regional saya' : 'Semua Regional'}</option>
+                {regionalOptions.map((regional) => <option key={regional} value={regional}>{regional}</option>)}
+              </select>
+              {regionalOnly && <p className="mt-1 text-xs text-slate-500">Akses tetap terbatas pada regional akun Anda.</p>}
+            </div>
             {/* Province */}
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">Provinsi</label>
@@ -484,6 +500,7 @@ function ActiveFilterBadges({
 }) {
   const badges: Array<{ key: keyof AdvancedFilters; label: string }> = [];
 
+  if (filters.regional) badges.push({ key: 'regional', label: `Binaan: ${filters.regional}` });
   if (filters.province) badges.push({ key: 'province', label: `Prov: ${filters.province}` });
   if (filters.category) badges.push({ key: 'category', label: `Kat: ${filters.category}` });
   if (filters.docType) badges.push({ key: 'docType', label: `Dok: ${filters.docType}` });
@@ -537,6 +554,11 @@ export function UMKMDirectoryPage({
   canCreate?: boolean;
 } = {}) {
   const router = useRouter();
+  const { user } = useAuth();
+  const regionalOnly = user?.role === 'ADMIN_REGIONAL';
+  const regionalOptions = user?.role === 'ADMIN_PUSAT'
+    ? REGIONAL_OPTIONS
+    : regionalOnly && user?.regional ? [user.regional] : [];
 
   const [cityFilter, setCityFilter] = useState('');
   const [provinceFilter, setProvinceFilter] = useState('');
@@ -591,6 +613,7 @@ export function UMKMDirectoryPage({
   const fetchData = useCallback(() => {
     setLoading(true);
     const params: Record<string, string | number | undefined> = { page, limit: 20, status: 'ACTIVE' };
+    if (advanced.regional) params.regional = advanced.regional;
     if (search) params.search = search;
     const cls = filterToApi[activeFilter];
     if (cls) params.classification = cls;
@@ -654,11 +677,12 @@ export function UMKMDirectoryPage({
       ['Diunduh', new Date().toLocaleString('id-ID')],
       ['Catatan', 'Isi berkas mengikuti filter yang sedang aktif di layar'],
       [],
-      ['Nama Usaha', 'Email Akun', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Jumlah Program'],
+      ['Nama Usaha', 'Email Akun', 'Regional Binaan', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Jumlah Program'],
       ...data.map((u) => [
         u.name,
         // Penanda bawaan impor (nomor telepon / slug) bukan email terdaftar.
         u.user?.email && u.user.email.includes('@') ? u.user.email : 'BELUM ADA EMAIL',
+        u.user?.regional ?? 'Belum ditetapkan',
         u.city ?? '', u.province ?? '', u.classification, u._count.participations,
       ]),
     ]);
@@ -685,6 +709,11 @@ export function UMKMDirectoryPage({
       header: 'Email Akun',
       accessor: 'user' as const,
       render: (val: UMKMRow['user']) => <EmailAkunBadge email={val?.email} />,
+    },
+    {
+      header: 'Regional Binaan',
+      accessor: 'user' as const,
+      render: (val: UMKMRow['user']) => val?.regional || 'Belum ditetapkan',
     },
     { header: 'Kota / Kabupaten', accessor: 'city' as const, render: (val: string | null) => val ?? '—' },
     { header: 'Provinsi', accessor: 'province' as const, render: (val: string | null) => val ?? '—' },
@@ -787,6 +816,8 @@ export function UMKMDirectoryPage({
         <AdvancedFilterPanel
           filters={advanced}
           options={filterOptions}
+          regionalOptions={regionalOptions}
+          regionalOnly={regionalOnly}
           onChange={setAdvancedKey}
           onReset={resetAdvanced}
           activeCount={advancedActiveCount}
