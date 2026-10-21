@@ -87,7 +87,7 @@ const EMPTY_ADVANCED: AdvancedFilters = {
 
 // 5S assessment option sets (value, label)
 type Opt = [string, string];
-const REGIONAL_OPTIONS = ['REGIONAL 1', 'REGIONAL 2', 'REGIONAL 3', 'REGIONAL 4'];
+const REGIONAL_OPTIONS = ['KANTOR PUSAT', 'REGIONAL 1', 'REGIONAL 2', 'REGIONAL 3', 'REGIONAL 4'];
 const MARKET_REACH_OPTS: Opt[] = [['LOCAL', 'Lokal'], ['REGIONAL', 'Regional'], ['NATIONAL', 'Nasional'], ['EXPORT', 'Ekspor']];
 const EXHIBITION_OPTS: Opt[] = [['NONE', 'Belum pernah'], ['ANY', 'Pernah (semua skala)'], ['LOCAL', 'Lokal'], ['PROVINCIAL', 'Provinsi'], ['NATIONAL', 'Nasional'], ['INTERNATIONAL', 'Internasional']];
 const LEGAL_OPTS: Opt[] = [['NONE', 'Belum ada'], ['PERMIT', 'Izin Usaha'], ['PERMIT_PRODUCT', 'Izin Usaha + Produk'], ['FULL', 'Lengkap']];
