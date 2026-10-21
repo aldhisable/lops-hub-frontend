@@ -88,6 +88,7 @@ const EMPTY_ADVANCED: AdvancedFilters = {
 // 5S assessment option sets (value, label)
 type Opt = [string, string];
 const REGIONAL_OPTIONS = ['KANTOR PUSAT', 'REGIONAL 1', 'REGIONAL 2', 'REGIONAL 3', 'REGIONAL 4'];
+const formatRegionalLabel = (regional: string) => regional.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
 const MARKET_REACH_OPTS: Opt[] = [['LOCAL', 'Lokal'], ['REGIONAL', 'Regional'], ['NATIONAL', 'Nasional'], ['EXPORT', 'Ekspor']];
 const EXHIBITION_OPTS: Opt[] = [['NONE', 'Belum pernah'], ['ANY', 'Pernah (semua skala)'], ['LOCAL', 'Lokal'], ['PROVINCIAL', 'Provinsi'], ['NATIONAL', 'Nasional'], ['INTERNATIONAL', 'Internasional']];
 const LEGAL_OPTS: Opt[] = [['NONE', 'Belum ada'], ['PERMIT', 'Izin Usaha'], ['PERMIT_PRODUCT', 'Izin Usaha + Produk'], ['FULL', 'Lengkap']];
@@ -291,8 +292,8 @@ function AdvancedFilterPanel({
             <div className="col-span-2">
               <label htmlFor="filter-regional" className="block text-xs font-semibold text-slate-600 mb-1">Regional Binaan</label>
               <select id="filter-regional" value={filters.regional} onChange={(e) => onChange('regional', e.target.value)} className={selectClass} disabled={regionalOptions.length === 0}>
-                <option value="">{regionalOnly ? 'Wilayah regional saya' : 'Semua Regional'}</option>
-                {regionalOptions.map((regional) => <option key={regional} value={regional}>{regional}</option>)}
+                <option value="">{regionalOnly ? 'Wilayah regional saya' : 'Semua'}</option>
+                {regionalOptions.map((regional) => <option key={regional} value={regional}>{formatRegionalLabel(regional)}</option>)}
               </select>
               {regionalOnly && <p className="mt-1 text-xs text-slate-500">Akses tetap terbatas pada regional akun Anda.</p>}
             </div>
@@ -500,7 +501,7 @@ function ActiveFilterBadges({
 }) {
   const badges: Array<{ key: keyof AdvancedFilters; label: string }> = [];
 
-  if (filters.regional) badges.push({ key: 'regional', label: `Binaan: ${filters.regional}` });
+  if (filters.regional) badges.push({ key: 'regional', label: `Binaan: ${formatRegionalLabel(filters.regional)}` });
   if (filters.province) badges.push({ key: 'province', label: `Prov: ${filters.province}` });
   if (filters.category) badges.push({ key: 'category', label: `Kat: ${filters.category}` });
   if (filters.docType) badges.push({ key: 'docType', label: `Dok: ${filters.docType}` });
@@ -713,7 +714,7 @@ export function UMKMDirectoryPage({
     {
       header: 'Regional Binaan',
       accessor: 'user' as const,
-      render: (val: UMKMRow['user']) => val?.regional || 'Belum ditetapkan',
+      render: (val: UMKMRow['user']) => val?.regional ? formatRegionalLabel(val.regional) : 'Belum ditetapkan',
     },
     { header: 'Kota / Kabupaten', accessor: 'city' as const, render: (val: string | null) => val ?? '—' },
     { header: 'Provinsi', accessor: 'province' as const, render: (val: string | null) => val ?? '—' },
