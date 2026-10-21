@@ -32,7 +32,7 @@ api.interceptors.response.use(
 // Auth
 export const authApi = {
   checkRegistrationEmail: (email: string) =>
-    api.post<{ available: true }>('/auth/check-email', { email }),
+    api.post<{ available: true }>('/auth/check-email', { email }, { timeout: 15000 }),
   login: (email: string, password: string) =>
     api.post<{ token: string; user: AuthUser }>('/auth/login', { email, password }),
   // Registrasi publik selalu menghasilkan akun UMKM — role ditentukan server, bukan klien.
@@ -40,7 +40,7 @@ export const authApi = {
   // memvalidasinya ke Supabase. Tidak diperlukan bila pemanggilnya admin yang
   // sudah login (form Tambah UMKM).
   register: (data: { name: string; email: string; password: string; umkmName?: string; category?: string; otpToken?: string }) =>
-    api.post<{ token: string; user: AuthUser }>('/auth/register', data),
+    api.post<{ token: string; user: AuthUser }>('/auth/register', data, { timeout: 30000 }),
   me: () => api.get<AuthUser>('/auth/me'),
   updateAccount: (data: { name: string }) => api.patch<AuthUser>('/auth/me', data),
   changePassword: (oldPassword: string, newPassword: string) =>

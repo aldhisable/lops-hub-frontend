@@ -32,12 +32,14 @@ function setup(options = {}) {
   };
   const api = { checkRegistrationEmail: async email => {
     calls.checks.push(email);
+    if (options.checkWait) await options.checkWait;
     if (options.checkError) throw options.checkError;
     return { data: { available: true } };
   } };
   const supabase = options.missingConfig ? null : { auth: {
     signInWithOtp: async data => {
       calls.sends.push(data);
+      if (options.sendWait) await options.sendWait;
       if (options.sendThrow) throw new Error('Simulasi jaringan OTP');
       return { error: options.sendError ?? null };
     },
@@ -117,6 +119,25 @@ await check('setelah jaringan pulih, resend memeriksa email dan mengirim ulang k
   assert.equal(h.calls.checks.length, 2); assert.equal(h.calls.sends.length, 2);
   assert.equal(h.resend().props.disabled, true); assert.match(h.text(), /Kode OTP telah dikirim/);
   assert.equal(h.calls.registers.length, 0);
+  assert.match(h.text(), /Kirim ulang \(60s\)/);
+});
+await check('label loading membedakan pemeriksaan email dan pengiriman; kegagalan membuka resend', async () => {
+  let finishCheck, finishSend;
+  const options = {
+    checkWait: new Promise(resolve => { finishCheck = resolve; }),
+    sendWait: new Promise(resolve => { finishSend = resolve; }),
+    sendThrow: true,
+  };
+  const h = setup(options); h.fillForm();
+  const pending = h.submit();
+  assert.match(h.text(), /Memeriksa email/); assert.equal(h.resend().props.disabled, true);
+  finishCheck();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.match(h.text(), /Mengirim kode/); assert.doesNotMatch(h.text(), /Memverifikasi/);
+  assert.equal(h.resend().props.disabled, true);
+  finishSend(); await pending;
+  assert.equal(h.otpVisible(), true); assert.equal(h.resend().props.disabled, false);
+  assert.equal(h.calls.registers.length, 0);
 });
 await check('resend juga menolak email yang telah terdaftar sejak percobaan pertama', async () => {
   const options = { sendThrow: true }; const h = setup(options); h.fillForm(); await h.submit();
@@ -155,10 +176,10 @@ await check('konflik email setelah OTP kembali ke form dengan pemberitahuan', as
 });
 await check('401 verifikasi register tidak mengalihkan ke login; 401 sesi lain tetap dialihkan', async () => {
   let rejectResponse;
-  const redirects = [], removals = [];
+  const redirects = [], removals = [], requests = [];
   const axios = { create: () => ({ interceptors: {
     request: { use() {} }, response: { use: (_resolve, reject) => { rejectResponse = reject; } },
-  } }) };
+  }, post: (...args) => { requests.push(args); } }) };
   const module = { exports: {} };
   const apiCode = ts.transpileModule(readFileSync(new URL('../src/lib/api.ts', import.meta.url), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true },
@@ -172,5 +193,43 @@ await check('401 verifikasi register tidak mengalihkan ke login; 401 sesi lain t
   assert.deepEqual(redirects, []); assert.deepEqual(removals, []);
   await assert.rejects(rejectResponse({ response: { status: 401 }, config: { url: '/auth/me' } }));
   assert.deepEqual(redirects, ['/login']); assert.equal(removals.length, 2);
+  module.exports.authApi.checkRegistrationEmail('baru@example.test');
+  module.exports.authApi.register({ email: 'baru@example.test' });
+  assert.equal(requests[0][0], '/auth/check-email'); assert.equal(requests[0][2].timeout, 15000);
+  assert.equal(requests[1][0], '/auth/register'); assert.equal(requests[1][2].timeout, 30000);
+});
+await check('fetch OTP dibatasi 15 detik dan tetap menghormati pembatalan pemanggil', async () => {
+  const module = { exports: {} }, timeouts = [];
+  let clientOptions;
+  const supabaseCode = ts.transpileModule(readFileSync(new URL('../src/lib/supabase.ts', import.meta.url), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS },
+  }).outputText;
+  vm.runInNewContext(supabaseCode, {
+    exports: module.exports,
+    require: name => {
+      assert.equal(name, '@supabase/supabase-js');
+      return { createClient: (_url, _key, options) => { clientOptions = options; return {}; } };
+    },
+    process: { env: { NEXT_PUBLIC_SUPABASE_URL: 'https://example.test', NEXT_PUBLIC_SUPABASE_ANON_KEY: 'placeholder' } },
+    AbortSignal: {
+      timeout: ms => { const controller = new AbortController(); timeouts.push({ ms, controller }); return controller.signal; },
+      any: signals => AbortSignal.any(signals),
+    },
+    fetch: (_input, init) => new Promise((_resolve, reject) => {
+      if (init.signal.aborted) reject(init.signal.reason);
+      else init.signal.addEventListener('abort', () => reject(init.signal.reason), { once: true });
+    }),
+  });
+  for (const upstream of [undefined, new AbortController()]) {
+    const pending = clientOptions.global.fetch('https://example.test/auth/v1/otp', { signal: upstream?.signal });
+    const timeout = timeouts.at(-1); assert.equal(timeout.ms, 15000);
+    const rejected = assert.rejects(pending, /timeout-test/);
+    timeout.controller.abort(new Error('timeout-test'));
+    await rejected;
+  }
+  const upstream = new AbortController();
+  const pending = clientOptions.global.fetch('https://example.test/auth/v1/otp', { signal: upstream.signal });
+  const rejected = assert.rejects(pending, /caller-test/);
+  upstream.abort(new Error('caller-test')); await rejected;
 });
 console.log(`\nLULUS ${total} skenario frontend registrasi OTP (handler asli, layanan/state dimock).`);

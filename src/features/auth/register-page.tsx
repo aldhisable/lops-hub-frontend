@@ -14,7 +14,7 @@ import { authApi } from '@/lib/api';
 const inputCls =
   'px-4 py-2.5 rounded-lg border border-slate-200 bg-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all';
 
-const RESEND_COOLDOWN = 30;
+const RESEND_COOLDOWN = 60;
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 export function RegisterPage() {
@@ -31,7 +31,9 @@ export function RegisterPage() {
 
   const [otp, setOtp] = useState('');
   const [verifiedOtpToken, setVerifiedOtpToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<'checking' | 'sending' | 'verifying' | null>(null);
+  const isLoading = loadingAction !== null;
+  const loadingText = loadingAction === 'checking' ? 'Memeriksa email...' : loadingAction === 'sending' ? 'Mengirim kode...' : 'Memverifikasi...';
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [cooldown, setCooldown] = useState(0);
@@ -64,6 +66,7 @@ export function RegisterPage() {
       return;
     }
 
+    setLoadingAction('sending');
     try {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email: address,
@@ -105,7 +108,7 @@ export function RegisterPage() {
       return;
     }
 
-    setIsLoading(true);
+    setLoadingAction('checking');
     setEmail(address);
     setOtp('');
     setPhase('otp');
@@ -114,7 +117,7 @@ export function RegisterPage() {
     } catch (err: any) {
       setError(err.response?.data?.error || 'Pendaftaran gagal. Silakan coba lagi.');
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   };
 
@@ -132,7 +135,7 @@ export function RegisterPage() {
       return;
     }
 
-    setIsLoading(true);
+    setLoadingAction('verifying');
     try {
       let otpToken = verifiedOtpToken;
       if (!otpToken) {
@@ -168,7 +171,7 @@ export function RegisterPage() {
       }
       setError(response?.data?.error || 'Pendaftaran belum berhasil. Silakan coba lagi atau kirim ulang kode.');
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   };
 
@@ -176,11 +179,11 @@ export function RegisterPage() {
     if (cooldown > 0 || isLoading) return;
     setError('');
     setInfo('');
-    setIsLoading(true);
+    setLoadingAction('checking');
     try {
       await sendOtp(email);
     } finally {
-      setIsLoading(false);
+      setLoadingAction(null);
     }
   };
 
@@ -247,7 +250,7 @@ export function RegisterPage() {
             )}
 
             <GlowButton type="submit" variant="primary" className="w-full py-2.5 mt-2 rounded-lg" disabled={isLoading}>
-              {isLoading ? 'Mengirim kode...' : 'Lanjut & Kirim OTP'}
+              {isLoading ? loadingText : 'Lanjut & Kirim OTP'}
             </GlowButton>
           </form>
         ) : (
@@ -276,7 +279,7 @@ export function RegisterPage() {
             )}
 
             <GlowButton type="submit" variant="primary" className="w-full py-2.5 mt-2 rounded-lg" disabled={isLoading}>
-              {isLoading ? 'Memverifikasi...' : 'Verifikasi & Daftar'}
+              {isLoading ? loadingText : 'Verifikasi & Daftar'}
             </GlowButton>
 
             <div className="flex items-center justify-between text-sm">
