@@ -201,7 +201,7 @@ export default function ProfilUsaha() {
             <form onSubmit={handleSave} className="flex flex-col gap-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium text-slate-700">Nama UMKM</label>
+                  <label className="text-sm font-medium text-slate-700">Nama UMK</label>
                   <input value={form.name} onChange={e => set('name', e.target.value)} readOnly={!editing} className={inputCls(editing)} />
                 </div>
                 <div className="flex flex-col gap-2">

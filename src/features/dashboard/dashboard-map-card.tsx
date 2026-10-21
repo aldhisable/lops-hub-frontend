@@ -24,7 +24,7 @@ const LeafletMap = dynamic(
 
 const LEGEND: Record<MapLevel, Array<{ color: string; label: string }>> = {
   province: [
-    { color: '#1e40af', label: '> 30 UMKM' },
+    { color: '#1e40af', label: '> 30 UMK' },
     { color: '#2563eb', label: '21 – 30' },
     { color: '#3b82f6', label: '11 – 20' },
     { color: '#60a5fa', label: '6 – 10' },
@@ -32,7 +32,7 @@ const LEGEND: Record<MapLevel, Array<{ color: string; label: string }>> = {
     { color: '#e2e8f0', label: '0 – 1' },
   ],
   kabkota: [
-    { color: '#1e40af', label: '> 20 UMKM' },
+    { color: '#1e40af', label: '> 20 UMK' },
     { color: '#2563eb', label: '11 – 20' },
     { color: '#3b82f6', label: '6 – 10' },
     { color: '#60a5fa', label: '3 – 5' },
@@ -92,9 +92,9 @@ export function DashboardMapCard() {
     <GlassCard className="p-6 lg:col-span-2 min-h-[400px] flex flex-col">
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h3 className="font-semibold text-lg text-slate-900">Peta Sebaran UMKM</h3>
+          <h3 className="font-semibold text-lg text-slate-900">Peta Sebaran UMK</h3>
           {!loading && totalUmkm > 0 && (
-            <p className="text-xs text-slate-500 mt-0.5">{totalUmkm.toLocaleString('id-ID')} UMKM terpetakan</p>
+            <p className="text-xs text-slate-500 mt-0.5">{totalUmkm.toLocaleString('id-ID')} UMK terpetakan</p>
           )}
         </div>
         <div className="flex bg-slate-100 p-1 rounded-lg">
@@ -120,7 +120,7 @@ export function DashboardMapCard() {
         {/* Legend */}
         <div className="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl p-3 shadow-lg">
           <div className="flex items-center gap-1.5 mb-2 text-xs font-semibold text-slate-700">
-            <Info className="w-3.5 h-3.5" /> Jumlah UMKM
+            <Info className="w-3.5 h-3.5" /> Jumlah UMK
           </div>
           <div className="flex flex-col gap-1">
             {LEGEND[level].map((l) => (

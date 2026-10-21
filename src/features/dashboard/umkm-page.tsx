@@ -191,12 +191,12 @@ function ConfirmModal({ confirm, loading, onCancel, onConfirm }: {
         </div>
 
         <h2 className="text-lg font-bold text-slate-900 mb-2">
-          {isDelete ? 'Hapus UMKM?' : 'Arsipkan UMKM?'}
+          {isDelete ? 'Hapus UMK?' : 'Arsipkan UMK?'}
         </h2>
         <p className="text-sm text-slate-500 mb-6">
           {isDelete
             ? <><span>Anda akan menghapus </span><span className="font-semibold text-slate-700">{confirm.name}</span><span> secara permanen. Tindakan ini tidak dapat dibatalkan.</span></>
-            : <><span>Anda akan mengarsipkan </span><span className="font-semibold text-slate-700">{confirm.name}</span><span>. UMKM ini akan berstatus tidak aktif dan bisa dipulihkan kembali.</span></>
+            : <><span>Anda akan mengarsipkan </span><span className="font-semibold text-slate-700">{confirm.name}</span><span>. UMK ini akan berstatus tidak aktif dan bisa dipulihkan kembali.</span></>
           }
         </p>
 
@@ -674,7 +674,7 @@ export function UMKMDirectoryPage({
   // bukan seluruh basis data, supaya isinya sesuai dengan yang dilihat pengguna.
   const exportCsv = () => {
     unduhCsv(`Direktori_UMKM_${new Date().toISOString().slice(0, 10)}.csv`, [
-      ['Direktori UMKM Binaan'],
+      ['Direktori UMK Binaan'],
       ['Diunduh', new Date().toLocaleString('id-ID')],
       ['Catatan', 'Isi berkas mengikuti filter yang sedang aktif di layar'],
       [],
@@ -698,7 +698,7 @@ export function UMKMDirectoryPage({
 
   const columns = [
     {
-      header: 'Nama UMKM',
+      header: 'Nama UMK',
       accessor: 'name' as const,
       render: (val: string, row: UMKMRow) => (
         <Link href={`${basePath}/umkm/${row.id}`} className="font-semibold text-slate-800 hover:text-blue-600 transition-colors">
@@ -764,9 +764,9 @@ export function UMKMDirectoryPage({
 
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Direktori UMKM Binaan{scopeLabel ? ` — ${scopeLabel}` : ''}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Direktori UMK Binaan{scopeLabel ? ` — ${scopeLabel}` : ''}</h1>
           <p className="text-slate-500 mt-1">
-            Kelola dan pantau data {loading ? '...' : total.toLocaleString('id-ID')} UMKM yang terdaftar di sistem.
+            Kelola dan pantau data {loading ? '...' : total.toLocaleString('id-ID')} UMK yang terdaftar di sistem.
           </p>
           {locationLabel && (
             <div className="flex items-center gap-2 mt-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-lg w-fit">
@@ -794,7 +794,7 @@ export function UMKMDirectoryPage({
           {canCreate && (
             <Link href={`${basePath}/umkm/tambah`}>
               <GlowButton variant="primary" className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium">
-                <Plus className="w-4 h-4" /> Tambah UMKM
+                <Plus className="w-4 h-4" /> Tambah UMK
               </GlowButton>
             </Link>
           )}
@@ -809,7 +809,7 @@ export function UMKMDirectoryPage({
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Cari nama UMKM..."
+            placeholder="Cari nama UMK..."
             className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
           />
         </div>
@@ -841,11 +841,11 @@ export function UMKMDirectoryPage({
       <div className="mt-4">
         {loading ? (
           <GlassCard className="p-12 flex items-center justify-center text-slate-400">
-            Memuat data UMKM...
+            Memuat data UMK...
           </GlassCard>
         ) : data.length === 0 ? (
           <GlassCard className="p-12 flex items-center justify-center text-slate-400">
-            Tidak ada data UMKM yang ditemukan.
+            Tidak ada data UMK yang ditemukan.
           </GlassCard>
         ) : (
           <DataTable columns={columns} data={data} />

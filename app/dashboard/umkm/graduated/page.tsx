@@ -43,10 +43,10 @@ export default function GraduatedUMKM() {
     <>
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-slate-900">UMKM Graduated</h1>
+          <h1 className="text-2xl font-bold text-slate-900">UMK Graduated</h1>
           {!loading && <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-sm font-semibold">{data.length}</span>}
         </div>
-        <p className="text-slate-500">UMKM yang telah lulus dari program pembinaan</p>
+        <p className="text-slate-500">UMK yang telah lulus dari program pembinaan</p>
       </div>
 
       {loading ? (
@@ -58,8 +58,8 @@ export default function GraduatedUMKM() {
           <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
             <GraduationCap className="w-8 h-8 text-emerald-400" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-700 mb-1">Belum ada UMKM graduated</h3>
-          <p className="text-sm text-slate-400">UMKM yang lulus program pembinaan akan muncul di sini</p>
+          <h3 className="text-lg font-semibold text-slate-700 mb-1">Belum ada UMK graduated</h3>
+          <p className="text-sm text-slate-400">UMK yang lulus program pembinaan akan muncul di sini</p>
         </GlassCard>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

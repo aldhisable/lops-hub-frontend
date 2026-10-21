@@ -44,7 +44,7 @@ export default function WorkspaceLaporan() {
       .finally(() => setLoading(false));
   }, []);
 
-  const usahaName = umkm?.name ?? 'UMKM';
+  const usahaName = umkm?.name ?? 'UMK';
 
   const reports = useMemo<ReportItem[]>(() => {
     if (financials.length === 0) return [];

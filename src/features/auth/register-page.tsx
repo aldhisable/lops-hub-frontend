@@ -176,7 +176,7 @@ export function RegisterPage() {
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-4"><img src="/logo.png" alt="LOPs Hub" className="w-full h-full object-cover" /></div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            {phase === 'form' ? 'Daftar UMKM' : 'Verifikasi Email'}
+            {phase === 'form' ? 'Daftar UMK' : 'Verifikasi Email'}
           </h1>
           <p className="text-slate-500 text-sm mt-2">
             {phase === 'form'
@@ -194,7 +194,7 @@ export function RegisterPage() {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-slate-700">Nama Usaha</label>
-              <input type="text" required value={umkmName} onChange={(e) => setUmkmName(e.target.value)} className={inputCls} placeholder="Nama UMKM / brand usaha" />
+              <input type="text" required value={umkmName} onChange={(e) => setUmkmName(e.target.value)} className={inputCls} placeholder="Nama UMK / brand usaha" />
             </div>
 
             <div className="flex flex-col gap-1.5">

@@ -254,7 +254,7 @@ export function LeafletMap({
       l.bindTooltip(
         `<div style="font-family:Inter,sans-serif;line-height:1.4;padding:2px 4px">
           <strong style="font-size:12px">${displayName}</strong><br/>
-          <span style="font-size:11px;color:#475569">${count > 0 ? `${count} UMKM` : 'Belum ada data'}</span>
+          <span style="font-size:11px;color:#475569">${count > 0 ? `${count} UMK` : 'Belum ada data'}</span>
         </div>`,
         { sticky: true, className: 'leaflet-tooltip-clean' }
       );
@@ -286,7 +286,7 @@ export function LeafletMap({
       l.bindTooltip(
         `<div style="font-family:Inter,sans-serif;line-height:1.4;padding:2px 4px">
           <strong style="font-size:12px">${displayName}</strong><br/>
-          <span style="font-size:11px;color:#475569">${count > 0 ? `${count} UMKM` : 'Belum ada data'}</span>
+          <span style="font-size:11px;color:#475569">${count > 0 ? `${count} UMK` : 'Belum ada data'}</span>
         </div>`,
         { sticky: true, className: 'leaflet-tooltip-clean' }
       );

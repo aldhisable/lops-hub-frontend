@@ -66,7 +66,7 @@ export default function RegionalDashboard() {
         <div>
           <h1 className="text-3xl font-black text-slate-900">Dashboard {user.regional}</h1>
           <p className="text-slate-500 mt-1">
-            Pemantauan UMKM binaan di wilayah Anda. Seluruh angka di halaman ini hanya mencakup {user.regional}.
+            Pemantauan UMK binaan di wilayah Anda. Seluruh angka di halaman ini hanya mencakup {user.regional}.
           </p>
         </div>
         <div className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium shadow-sm flex items-center gap-2">
@@ -76,7 +76,7 @@ export default function RegionalDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <KPICard
-          title="UMKM Binaan"
+          title="UMK Binaan"
           value={loading ? '—' : (stats?.totalUMKM ?? 0).toLocaleString('id-ID')}
           icon={Users}
           iconBgClass="bg-purple-50"
@@ -118,7 +118,7 @@ export default function RegionalDashboard() {
             <div className="flex items-center justify-center h-40 text-slate-400 text-sm">Memuat data...</div>
           ) : (stats?.topCities.length ?? 0) === 0 ? (
             <div className="flex items-center justify-center h-40 text-slate-400 text-sm">
-              Belum ada UMKM dengan data kota di wilayah ini.
+              Belum ada UMK dengan data kota di wilayah ini.
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -130,7 +130,7 @@ export default function RegionalDashboard() {
                       <span className="font-medium text-slate-700">
                         <span className="text-slate-400 mr-2">{i + 1}.</span>{c.city}
                       </span>
-                      <span className="font-semibold text-slate-900">{c.count} UMKM</span>
+                      <span className="font-semibold text-slate-900">{c.count} UMK</span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                       <div className="h-full bg-blue-500 rounded-full" style={{ width: `${(c.count / maks) * 100}%` }} />
@@ -176,7 +176,7 @@ export default function RegionalDashboard() {
       <div className="grid grid-cols-1 gap-6 mb-8">
         <AnalyticsChart
           title={`Tren Omzet ${user.regional}`}
-          subtitle="Omzet UMKM binaan di wilayah Anda (Rupiah)"
+          subtitle="Omzet UMK binaan di wilayah Anda (Rupiah)"
           data={trend.length > 0 ? trend : [{ month: '—', revenue: 0 }]}
           dataKey="revenue"
           xAxisKey="month"
@@ -190,7 +190,7 @@ export default function RegionalDashboard() {
 
       <p className="text-xs text-slate-400 mt-6">
         <TrendingUp className="w-3 h-3 inline mr-1" />
-        Data omzet berasal dari laporan keuangan UMKM. Selama UMKM di wilayah Anda belum mengisinya,
+        Data omzet berasal dari laporan keuangan UMK. Selama UMK di wilayah Anda belum mengisinya,
         angka omzet akan tampil kosong.
       </p>
     </>

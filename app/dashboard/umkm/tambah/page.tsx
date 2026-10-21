@@ -39,7 +39,7 @@ export default function TambahUMKM() {
     setError('');
 
     if (!form.ownerName || !form.email || !form.password || !form.name || !form.category) {
-      setError('Nama UMKM, kategori, nama owner, email, dan password wajib diisi.');
+      setError('Nama UMK, kategori, nama owner, email, dan password wajib diisi.');
       return;
     }
     if (form.password.length < 6) {
@@ -90,8 +90,8 @@ export default function TambahUMKM() {
     <>
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Tambah UMKM Baru</h1>
-          <p className="text-slate-500 mt-1">Daftarkan UMKM baru ke dalam sistem pembinaan</p>
+          <h1 className="text-2xl font-bold text-slate-900">Tambah UMK Baru</h1>
+          <p className="text-slate-500 mt-1">Daftarkan UMK baru ke dalam sistem pembinaan</p>
         </div>
         <Link href="/dashboard/umkm" className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm hover:bg-slate-50 transition-colors w-fit">
           <ArrowLeft className="w-4 h-4" /> Kembali
@@ -100,7 +100,7 @@ export default function TambahUMKM() {
 
       {success && (
         <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-lg text-sm font-medium">
-          UMKM berhasil ditambahkan! Mengarahkan ke direktori...
+          UMK berhasil ditambahkan! Mengarahkan ke direktori...
         </div>
       )}
       {error && (
@@ -117,7 +117,7 @@ export default function TambahUMKM() {
             {/* Akun Login Owner */}
             <GlassCard className="p-8">
               <h3 className="text-lg font-bold text-slate-900 mb-1">Akun Login Owner</h3>
-              <p className="text-sm text-slate-500 mb-6">Email dan password yang akan digunakan pemilik UMKM untuk login ke workspace</p>
+              <p className="text-sm text-slate-500 mb-6">Email dan password yang akan digunakan pemilik UMK untuk login ke workspace</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-2 md:col-span-2">
                   <label className="text-sm font-medium text-slate-700">Nama Lengkap Owner *</label>
@@ -125,7 +125,7 @@ export default function TambahUMKM() {
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">Email *</label>
-                  <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="owner@umkm.id" className={inputCls} />
+                  <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="owner@example.com" className={inputCls} />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium text-slate-700">Password *</label>
@@ -154,7 +154,7 @@ export default function TambahUMKM() {
               <h3 className="text-lg font-bold text-slate-900 mb-6">Informasi Usaha</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-2 md:col-span-2">
-                  <label className="text-sm font-medium text-slate-700">Nama UMKM *</label>
+                  <label className="text-sm font-medium text-slate-700">Nama UMK *</label>
                   <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Contoh: Rumah Laut Sejahtera" className={inputCls} />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -209,7 +209,7 @@ export default function TambahUMKM() {
             <GlassCard className="p-6">
               <div className="flex flex-col gap-3">
                 <GlowButton type="submit" variant="primary" disabled={saving} className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-sm font-medium w-full">
-                  {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...</> : <><Save className="w-4 h-4" /> Simpan UMKM</>}
+                  {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Menyimpan...</> : <><Save className="w-4 h-4" /> Simpan UMK</>}
                 </GlowButton>
                 <Link href="/dashboard/umkm" className="flex items-center justify-center px-6 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                   Batal

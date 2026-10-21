@@ -62,7 +62,7 @@ export function DashboardPage() {
       <div className="flex justify-between items-end mb-8">
         <div>
           <h1 className="text-3xl font-black text-slate-900">Dashboard Nasional</h1>
-          <p className="text-slate-500 mt-1">Monitoring pertumbuhan dan perkembangan UMKM binaan LOPs Hub</p>
+          <p className="text-slate-500 mt-1">Monitoring pertumbuhan dan perkembangan UMK binaan LOPs Hub</p>
         </div>
         <div className="bg-white border border-slate-200 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium shadow-sm flex items-center gap-2">
           📅 {new Date().getFullYear()}
@@ -72,7 +72,7 @@ export function DashboardPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <KPICard
-          title="Total UMKM"
+          title="Total UMK"
           value={loading ? '—' : stats?.totalUMKM.toLocaleString('id-ID') ?? '0'}
           icon={Users}
           iconBgClass="bg-purple-50"
@@ -94,7 +94,7 @@ export function DashboardPage() {
           iconColorClass="text-amber-600"
         />
         <KPICard
-          title="UMKM Silver"
+          title="UMK Silver"
           value={loading ? '—' : getClassCount('SILVER').toString()}
           icon={TrendingUp}
           iconBgClass="bg-cyan-50"
@@ -133,7 +133,7 @@ export function DashboardPage() {
                 );
               })}
               <div className="pt-4 mt-2 border-t border-slate-100 flex justify-between items-center text-sm">
-                <span className="text-slate-500 font-medium">Total UMKM</span>
+                <span className="text-slate-500 font-medium">Total UMK</span>
                 <span className="text-slate-900 font-black text-xl">{totalClassified}</span>
               </div>
             </div>
@@ -144,7 +144,7 @@ export function DashboardPage() {
       <div className="grid grid-cols-1 gap-6 mb-8">
         <AnalyticsChart
           title="Tren Omzet (Penjualan)"
-          subtitle="Total omzet UMKM (Rupiah)"
+          subtitle="Total omzet UMK (Rupiah)"
           data={trendChartData.length > 0 ? trendChartData : [{ month: '—', revenue: 0 }]}
           dataKey="revenue"
           xAxisKey="month"

@@ -18,15 +18,15 @@ const TYPE_META: Record<
 function phrase(a: RecentActivity): string {
   switch (a.type) {
     case 'UMKM_NEW':
-      return `UMKM "${a.umkmName}" baru terdaftar`;
+      return `UMK "${a.umkmName}" baru terdaftar`;
     case 'UMKM_UPDATE':
-      return `UMKM "${a.umkmName}" memperbarui data profil`;
+      return `UMK "${a.umkmName}" memperbarui data profil`;
     case 'PRODUCT_NEW':
-      return `UMKM "${a.umkmName}" ${a.detail.charAt(0).toLowerCase()}${a.detail.slice(1)}`;
+      return `UMK "${a.umkmName}" ${a.detail.charAt(0).toLowerCase()}${a.detail.slice(1)}`;
     case 'SALES_UPDATE':
-      return `UMKM "${a.umkmName}" memperbarui data penjualan`;
+      return `UMK "${a.umkmName}" memperbarui data penjualan`;
     default:
-      return `UMKM "${a.umkmName}"`;
+      return `UMK "${a.umkmName}"`;
   }
 }
 

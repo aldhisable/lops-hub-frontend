@@ -67,11 +67,11 @@ export default function RegionalLaporan() {
     return [
       {
         key: 'direktori',
-        nama: 'Direktori UMKM Binaan',
-        desc: `Daftar lengkap ${umkm.length} UMKM aktif di ${wilayah} beserta klasifikasi, lokasi, dan jumlah produk.`,
+        nama: 'Direktori UMK Binaan',
+        desc: `Daftar lengkap ${umkm.length} UMK aktif di ${wilayah} beserta klasifikasi, lokasi, dan jumlah produk.`,
         unduh: () =>
           unduhCsv(`Direktori_UMKM_${wilayah.replace(/\s+/g, '_')}_${tanggal}.csv`, [
-            ['Direktori UMKM Binaan', wilayah],
+            ['Direktori UMK Binaan', wilayah],
             ['Diunduh', tanggal],
             [],
             ['Nama Usaha', 'Kategori', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Tahun Berdiri', 'Telepon', 'Jumlah Produk', 'Jumlah Program'],
@@ -85,13 +85,13 @@ export default function RegionalLaporan() {
       {
         key: 'klasifikasi',
         nama: 'Rekap Klasifikasi',
-        desc: 'Jumlah UMKM per kelas 5S di wilayah Anda, siap dilampirkan ke laporan kinerja.',
+        desc: 'Jumlah UMK per kelas 5S di wilayah Anda, siap dilampirkan ke laporan kinerja.',
         unduh: () =>
           unduhCsv(`Rekap_Klasifikasi_${wilayah.replace(/\s+/g, '_')}_${tanggal}.csv`, [
-            ['Rekap Klasifikasi UMKM', wilayah],
+            ['Rekap Klasifikasi UMK', wilayah],
             ['Diunduh', tanggal],
             [],
-            ['Kelas', 'Jumlah UMKM'],
+            ['Kelas', 'Jumlah UMK'],
             ...['PLATINUM', 'GOLD', 'SILVER', 'BRONZE'].map((k) => [
               k,
               stats?.classificationDist.find((d) => d.classification === k)?._count.id ?? 0,
@@ -103,13 +103,13 @@ export default function RegionalLaporan() {
       {
         key: 'sebaran',
         nama: 'Sebaran Kota / Kabupaten',
-        desc: 'Jumlah UMKM per kota dan kabupaten, untuk memetakan konsentrasi binaan.',
+        desc: 'Jumlah UMK per kota dan kabupaten, untuk memetakan konsentrasi binaan.',
         unduh: () =>
           unduhCsv(`Sebaran_Kota_${wilayah.replace(/\s+/g, '_')}_${tanggal}.csv`, [
-            ['Sebaran UMKM per Kota/Kabupaten', wilayah],
+            ['Sebaran UMK per Kota/Kabupaten', wilayah],
             ['Diunduh', tanggal],
             [],
-            ['Kota / Kabupaten', 'Jumlah UMKM'],
+            ['Kota / Kabupaten', 'Jumlah UMK'],
             ...(stats?.topCities ?? []).map((c) => [c.city, c.count]),
           ]),
       },
@@ -128,7 +128,7 @@ export default function RegionalLaporan() {
     <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Laporan {wilayah}</h1>
-        <p className="text-slate-500 mt-1">Unduh rekap data UMKM binaan di wilayah Anda sebagai berkas CSV</p>
+        <p className="text-slate-500 mt-1">Unduh rekap data UMK binaan di wilayah Anda sebagai berkas CSV</p>
       </div>
 
       {err && (
@@ -141,7 +141,7 @@ export default function RegionalLaporan() {
         </GlassCard>
       ) : umkm.length === 0 ? (
         <GlassCard className="p-12 text-center text-slate-500">
-          Belum ada UMKM aktif di {wilayah}, jadi belum ada yang bisa dilaporkan.
+          Belum ada UMK aktif di {wilayah}, jadi belum ada yang bisa dilaporkan.
         </GlassCard>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -167,8 +167,8 @@ export default function RegionalLaporan() {
       <div className="mt-6 flex items-start gap-2 text-xs text-slate-400">
         <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
         <span>
-          Berkas dibuat dari data yang sama dengan yang Anda lihat di menu UMKM dan Klasifikasi,
-          dan hanya memuat UMKM di {wilayah}.
+          Berkas dibuat dari data yang sama dengan yang Anda lihat di menu UMK dan Klasifikasi,
+          dan hanya memuat UMK di {wilayah}.
         </span>
       </div>
     </>

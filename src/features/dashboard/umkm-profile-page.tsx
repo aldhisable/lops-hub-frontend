@@ -487,14 +487,14 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-400">Memuat data UMKM...</div>
+      <div className="flex items-center justify-center h-64 text-slate-400">Memuat data UMK...</div>
     );
   }
 
   if (!umkm) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400">
-        Data UMKM tidak ditemukan.{' '}
+        Data UMK tidak ditemukan.{' '}
         <Link href={`${basePath}/umkm`} className="text-blue-600 ml-2 hover:underline">Kembali ke direktori</Link>
       </div>
     );
@@ -508,7 +508,7 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
     <>
       {/* Breadcrumb */}
       <div className="flex items-center text-sm font-medium text-slate-400 mb-6 gap-2">
-        <Link href={`${basePath}/umkm`} className="hover:text-blue-600 transition-colors">UMKM</Link>
+        <Link href={`${basePath}/umkm`} className="hover:text-blue-600 transition-colors">UMK</Link>
         <ChevronRight className="w-3.5 h-3.5" />
         <span className="text-slate-800 font-semibold">{umkm.name}</span>
       </div>
@@ -762,7 +762,7 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
           {umkm.documents.length === 0 ? (
             <GlassCard className="p-12 flex flex-col items-center justify-center gap-3 text-slate-400">
               <FileText className="w-10 h-10 text-slate-300" />
-              <p className="text-sm">Belum ada dokumen yang diupload oleh UMKM ini.</p>
+              <p className="text-sm">Belum ada dokumen yang diupload oleh UMK ini.</p>
             </GlassCard>
           ) : umkm.documents.map((doc) => (
             <GlassCard key={doc.id} className="p-5 flex items-center gap-4 hover:shadow-md transition-shadow">
@@ -819,7 +819,7 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
               <GlassCard className="p-5">
                 <div className="text-xs text-slate-500 mb-1">Omzet Umum {currentYear}</div>
                 <div className="text-xl font-bold text-purple-700">{formatCompactRupiah(totalFin)}</div>
-                <div className="text-xs text-slate-400 mt-1">Self-report oleh UMKM</div>
+                <div className="text-xs text-slate-400 mt-1">Self-report oleh UMK</div>
               </GlassCard>
             </div>
 
@@ -924,7 +924,7 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
               </GlassCard>
               <GlassCard className="p-6">
                 <h3 className="font-semibold text-slate-900 mb-1">Omzet Umum (Self-Report)</h3>
-                <p className="text-xs text-slate-400 mb-4">Dilaporkan langsung oleh UMKM</p>
+                <p className="text-xs text-slate-400 mb-4">Dilaporkan langsung oleh UMK</p>
                 {finThisYear.length === 0 ? (
                   <div className="text-sm text-slate-400 py-4 text-center">Belum ada laporan omzet.</div>
                 ) : (
@@ -982,7 +982,7 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-lg font-bold text-slate-900">Edit Profile UMKM</h2>
+              <h2 className="text-lg font-bold text-slate-900">Edit Profile UMK</h2>
               <button onClick={() => setShowEditModal(false)} className="p-2 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -991,7 +991,7 @@ export function UMKMProfilePage({ id, basePath = '/dashboard' }: { id?: string; 
             <form id="edit-umkm-form" onSubmit={handleSaveEdit} className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
-                  <label className="text-xs font-medium text-slate-600 mb-1 block">Nama UMKM <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-medium text-slate-600 mb-1 block">Nama UMK <span className="text-red-500">*</span></label>
                   <input required value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))}
                     className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-300" />
                 </div>

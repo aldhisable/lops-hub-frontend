@@ -81,14 +81,14 @@ export function KlasifikasiPage({ regional, basePath = '/dashboard' }: Props = {
       .finally(() => setLoading(false));
   }, [regional]);
 
-  const judul = regional ? `Klasifikasi UMKM ${regional}` : 'Klasifikasi UMKM';
+  const judul = regional ? `Klasifikasi UMK ${regional}` : 'Klasifikasi UMK';
 
   return (
     <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">{judul}</h1>
         <p className="text-slate-500 mt-1">
-          Pengelompokan UMKM berdasarkan parameter 5S: Spread, Size, Sustain, Share, dan Supplier
+          Pengelompokan UMK berdasarkan parameter 5S: Spread, Size, Sustain, Share, dan Supplier
         </p>
       </div>
 
@@ -121,7 +121,7 @@ export function KlasifikasiPage({ regional, basePath = '/dashboard' }: Props = {
 
       {belumLengkap !== null && belumLengkap > 0 && (
         <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-          <strong>{belumLengkap.toLocaleString('id-ID')} UMKM</strong> belum memiliki data 5S lengkap,
+          <strong>{belumLengkap.toLocaleString('id-ID')} UMK</strong> belum memiliki data 5S lengkap,
           sehingga kelasnya belum bisa ditetapkan dari penilaian. Kelas yang tampil untuk mereka
           adalah nilai terakhir yang tersimpan.
         </div>
@@ -147,7 +147,7 @@ export function KlasifikasiPage({ regional, basePath = '/dashboard' }: Props = {
                     </div>
                     <div className="text-right">
                       <div className="text-3xl font-bold">{jumlah.toLocaleString('id-ID')}</div>
-                      <div className="text-sm opacity-80">UMKM ({persen}%)</div>
+                      <div className="text-sm opacity-80">UMK ({persen}%)</div>
                     </div>
                   </div>
                 </div>
@@ -158,7 +158,7 @@ export function KlasifikasiPage({ regional, basePath = '/dashboard' }: Props = {
                     href={`${basePath}/umkm?classification=${k.key}`}
                     className="mt-4 inline-block text-sm font-semibold text-blue-600 hover:text-blue-700"
                   >
-                    Lihat daftar UMKM →
+                    Lihat daftar UMK →
                   </Link>
                 </div>
               </GlassCard>

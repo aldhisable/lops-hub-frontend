@@ -76,11 +76,11 @@ export function ReportPage() {
     return [
       {
         key: 'direktori',
-        nama: 'Direktori UMKM Nasional',
-        desc: `Daftar lengkap ${umkm.length} UMKM binaan aktif beserta klasifikasi, lokasi, dan jumlah produk.`,
+        nama: 'Direktori UMK Nasional',
+        desc: `Daftar lengkap ${umkm.length} UMK binaan aktif beserta klasifikasi, lokasi, dan jumlah produk.`,
         unduh: () =>
           unduhCsv(`Direktori_UMKM_Nasional_${tanggal}.csv`, [
-            ['Direktori UMKM Binaan Nasional'],
+            ['Direktori UMK Binaan Nasional'],
             ['Diunduh', tanggal],
             [],
             ['Nama Usaha', 'Kategori', 'Email Akun', 'Kota/Kabupaten', 'Provinsi', 'Kelas', 'Tahun Berdiri', 'Telepon', 'Jumlah Produk', 'Jumlah Program'],
@@ -96,13 +96,13 @@ export function ReportPage() {
       {
         key: 'klasifikasi',
         nama: 'Rekap Klasifikasi 5S',
-        desc: 'Jumlah UMKM per kelas Platinum, Gold, Silver, dan Bronze.',
+        desc: 'Jumlah UMK per kelas Platinum, Gold, Silver, dan Bronze.',
         unduh: () =>
           unduhCsv(`Rekap_Klasifikasi_${tanggal}.csv`, [
-            ['Rekap Klasifikasi UMKM Nasional'],
+            ['Rekap Klasifikasi UMK Nasional'],
             ['Diunduh', tanggal],
             [],
-            ['Kelas', 'Jumlah UMKM'],
+            ['Kelas', 'Jumlah UMK'],
             ...['PLATINUM', 'GOLD', 'SILVER', 'BRONZE'].map((k) => [
               k,
               stats?.classificationDist.find((d) => d.classification === k)?._count.id ?? 0,
@@ -114,26 +114,26 @@ export function ReportPage() {
       {
         key: 'sebaran',
         nama: 'Sebaran Provinsi',
-        desc: 'Jumlah UMKM per provinsi, untuk memetakan konsentrasi binaan secara nasional.',
+        desc: 'Jumlah UMK per provinsi, untuk memetakan konsentrasi binaan secara nasional.',
         unduh: () =>
           unduhCsv(`Sebaran_Provinsi_${tanggal}.csv`, [
-            ['Sebaran UMKM per Provinsi'],
+            ['Sebaran UMK per Provinsi'],
             ['Diunduh', tanggal],
             [],
-            ['Provinsi', 'Jumlah UMKM'],
+            ['Provinsi', 'Jumlah UMK'],
             ...[...perProvinsi.entries()].sort((a, b) => b[1] - a[1]),
           ]),
       },
       {
         key: 'kategori',
         nama: 'Rekap Kategori Usaha',
-        desc: 'Jumlah UMKM per kategori usaha, untuk melihat komposisi portofolio binaan.',
+        desc: 'Jumlah UMK per kategori usaha, untuk melihat komposisi portofolio binaan.',
         unduh: () =>
           unduhCsv(`Rekap_Kategori_${tanggal}.csv`, [
             ['Rekap Kategori Usaha'],
             ['Diunduh', tanggal],
             [],
-            ['Kategori', 'Jumlah UMKM'],
+            ['Kategori', 'Jumlah UMK'],
             ...[...perKategori.entries()].sort((a, b) => b[1] - a[1]),
           ]),
       },
@@ -144,7 +144,7 @@ export function ReportPage() {
     <>
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Laporan &amp; Export</h1>
-        <p className="text-slate-500 mt-1">Unduh rekap data UMKM binaan sebagai berkas CSV</p>
+        <p className="text-slate-500 mt-1">Unduh rekap data UMK binaan sebagai berkas CSV</p>
       </div>
 
       {err && (
@@ -157,7 +157,7 @@ export function ReportPage() {
         </GlassCard>
       ) : umkm.length === 0 ? (
         <GlassCard className="p-12 text-center text-slate-500">
-          Belum ada UMKM aktif, jadi belum ada yang bisa dilaporkan.
+          Belum ada UMK aktif, jadi belum ada yang bisa dilaporkan.
         </GlassCard>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -183,7 +183,7 @@ export function ReportPage() {
       <div className="mt-6 flex items-start gap-2 text-xs text-slate-400">
         <Info className="w-3.5 h-3.5 mt-0.5 shrink-0" />
         <span>
-          Berkas dibuat dari data yang sama dengan yang tampil di menu UMKM dan Klasifikasi.
+          Berkas dibuat dari data yang sama dengan yang tampil di menu UMK dan Klasifikasi.
           Ekspor PDF dan infografis belum tersedia.
         </span>
       </div>

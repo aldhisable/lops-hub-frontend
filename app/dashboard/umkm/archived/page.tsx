@@ -43,7 +43,7 @@ export default function ArchivedUMKM() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Hapus UMKM ini secara permanen? Tindakan tidak bisa dibatalkan.')) return;
+    if (!confirm('Hapus UMK ini secara permanen? Tindakan tidak bisa dibatalkan.')) return;
     setProcessing(id + '-delete');
     try {
       await umkmApi.delete(id);
@@ -59,10 +59,10 @@ export default function ArchivedUMKM() {
     <>
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-slate-900">UMKM Archived</h1>
+          <h1 className="text-2xl font-bold text-slate-900">UMK Archived</h1>
           {!loading && <span className="px-3 py-1 rounded-full bg-slate-200 text-slate-600 text-sm font-semibold">{data.length}</span>}
         </div>
-        <p className="text-slate-500">UMKM yang telah diarsipkan atau dinon-aktifkan dari sistem</p>
+        <p className="text-slate-500">UMK yang telah diarsipkan atau dinon-aktifkan dari sistem</p>
       </div>
 
       {loading ? (
@@ -72,15 +72,15 @@ export default function ArchivedUMKM() {
           <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
             <Archive className="w-8 h-8 text-slate-400" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-700 mb-1">Tidak ada UMKM archived</h3>
-          <p className="text-sm text-slate-400">Semua UMKM masih aktif di sistem</p>
+          <h3 className="text-lg font-semibold text-slate-700 mb-1">Tidak ada UMK archived</h3>
+          <p className="text-sm text-slate-400">Semua UMK masih aktif di sistem</p>
         </GlassCard>
       ) : (
         <GlassCard className="p-0 overflow-hidden">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50/50">
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">UMKM</th>
+                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">UMK</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Lokasi</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Tanggal Arsip</th>
                 <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase">Aksi</th>

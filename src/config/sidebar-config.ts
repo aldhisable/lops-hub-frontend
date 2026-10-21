@@ -13,12 +13,12 @@ export const brandConfig = {
 export const mainNavItems: SidebarNavItem[] = [
   { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
   {
-    label: 'UMKM',
+    label: 'UMK',
     icon: Users,
     href: '/dashboard/umkm',
     children: [
-      { label: 'All UMKM', href: '/dashboard/umkm' },
-      { label: 'Tambah UMKM', href: '/dashboard/umkm/tambah' },
+      { label: 'All UMK', href: '/dashboard/umkm' },
+      { label: 'Tambah UMK', href: '/dashboard/umkm/tambah' },
       { label: 'Pending Verifikasi', href: '/dashboard/umkm/pending' },
       { label: 'Graduated', href: '/dashboard/umkm/graduated' },
       { label: 'Archived', href: '/dashboard/umkm/archived' },

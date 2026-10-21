@@ -15,7 +15,7 @@ export const regionalMainNavItems: SidebarNavItem[] = [
 ];
 
 export const regionalDataNavItems: SidebarNavItem[] = [
-  { label: 'UMKM', icon: Users, href: '/regional/umkm' },
+  { label: 'UMK', icon: Users, href: '/regional/umkm' },
   { label: 'Program', icon: Folders, href: '/regional/program' },
   { label: 'Klasifikasi', icon: Award, href: '/regional/klasifikasi' },
   { label: 'Peta Sebaran', icon: Map, href: '/regional/peta' },

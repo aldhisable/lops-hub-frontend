@@ -69,7 +69,7 @@ export function PublicHomepage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
             </span>
-            Monitoring Ekosistem UMKM Nasional
+            Monitoring Ekosistem UMK Nasional
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -78,7 +78,7 @@ export function PublicHomepage() {
             className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight max-w-4xl leading-tight"
           >
             Mendorong Pertumbuhan <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">UMKM Nusantara</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">UMK Nusantara</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -86,14 +86,14 @@ export function PublicHomepage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-6 text-xl text-slate-500 max-w-2xl"
           >
-            Platform intelijen terpadu untuk monitoring, evaluasi, dan akselerasi UMKM binaan LOPs Hub di seluruh Indonesia.
+            Platform intelijen terpadu untuk monitoring, evaluasi, dan akselerasi UMK binaan LOPs Hub di seluruh Indonesia.
           </motion.p>
         </section>
 
         {/* KPI COUNTERS — real data */}
         <section className="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
           <KPICard
-            title="Total UMKM Binaan"
+            title="Total UMK Binaan"
             value={dash(stats ? stats.totalUmkm.toLocaleString('id-ID') : '—')}
             icon={Users}
             iconBgClass="bg-blue-100"
@@ -117,7 +117,7 @@ export function PublicHomepage() {
             trend={stats ? { value: Math.abs(stats.momGrowthPct), isPositive: stats.momGrowthPct >= 0, label: 'vs bulan lalu' } : undefined}
           />
           <KPICard
-            title="UMKM Naik Kelas"
+            title="UMK Naik Kelas"
             value={dash(stats ? stats.umkmNaikKelas.toLocaleString('id-ID') : '—')}
             icon={Award}
             iconBgClass="bg-amber-100"
@@ -131,8 +131,8 @@ export function PublicHomepage() {
             <GlassCard className="p-6 flex-1 flex flex-col min-h-[500px] relative overflow-hidden">
               <div className="flex justify-between items-start mb-6 relative z-10">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">Sebaran UMKM per Provinsi</h3>
-                  <p className="text-sm text-slate-500">Distribusi UMKM binaan teratas berdasarkan provinsi</p>
+                  <h3 className="text-xl font-bold text-slate-900">Sebaran UMK per Provinsi</h3>
+                  <p className="text-sm text-slate-500">Distribusi UMK binaan teratas berdasarkan provinsi</p>
                 </div>
                 <MapPin className="w-6 h-6 text-blue-500/60" />
               </div>
@@ -147,7 +147,7 @@ export function PublicHomepage() {
                     <div key={p.province}>
                       <div className="flex justify-between text-sm mb-1.5">
                         <span className="font-medium text-slate-700">{p.province}</span>
-                        <span className="text-slate-500">{p.count.toLocaleString('id-ID')} UMKM</span>
+                        <span className="text-slate-500">{p.count.toLocaleString('id-ID')} UMK</span>
                       </div>
                       <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                         <div
@@ -189,7 +189,7 @@ export function PublicHomepage() {
             {/* Revenue Trend */}
             <AnalyticsChart
               title="Tren Omzet (Penjualan)"
-              subtitle="Total omzet UMKM binaan per bulan"
+              subtitle="Total omzet UMK binaan per bulan"
               data={revenueData}
               dataKey="revenue"
               xAxisKey="month"

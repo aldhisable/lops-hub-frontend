@@ -19,7 +19,7 @@ const ROLE_LABEL: Record<string, string> = {
   UMKM: 'UMK Binaan',
 };
 
-export function TopBar({ searchPlaceholder = "Cari nama UMKM...", userName, userRole }: TopBarProps) {
+export function TopBar({ searchPlaceholder = "Cari nama UMK...", userName, userRole }: TopBarProps) {
   const { user: authUser, logout } = useAuth();
   const router = useRouter();
   const [query, setQuery] = useState('');
@@ -80,7 +80,7 @@ export function TopBar({ searchPlaceholder = "Cari nama UMKM...", userName, user
           <form onSubmit={cari} className="flex-1 max-w-xl relative hidden md:block">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
-              aria-label="Cari UMKM"
+              aria-label="Cari UMK"
               placeholder={searchPlaceholder}
               type="search"
               value={query}
@@ -96,7 +96,7 @@ export function TopBar({ searchPlaceholder = "Cari nama UMKM...", userName, user
         <div className="md:hidden flex-1 flex justify-end">
           <button
             type="button"
-            aria-label="Cari UMKM"
+            aria-label="Cari UMK"
             onClick={() => router.push(direktori)}
             className="p-2 text-slate-500 hover:bg-slate-100 rounded-full"
           >

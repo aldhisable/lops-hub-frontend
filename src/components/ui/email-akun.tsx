@@ -186,7 +186,7 @@ export function EmailAkunEditor({
                 className={inputCls}
               />
               <span className="text-xs text-slate-400">
-                Dipakai UMKM untuk masuk ke workspace, jadi harus unik antar akun.
+                Dipakai UMK untuk masuk ke workspace, jadi harus unik antar akun.
               </span>
             </div>
 

@@ -64,7 +64,7 @@ export default function PendingVerifikasi() {
           <h1 className="text-2xl font-bold text-slate-900">Pending Verifikasi</h1>
           {!loading && <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold">{data.length}</span>}
         </div>
-        <p className="text-slate-500">UMKM yang menunggu verifikasi dan persetujuan admin</p>
+        <p className="text-slate-500">UMK yang menunggu verifikasi dan persetujuan admin</p>
       </div>
 
       {loading ? (
@@ -78,8 +78,8 @@ export default function PendingVerifikasi() {
           <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
             <Clock className="w-8 h-8 text-amber-400" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-700 mb-1">Tidak ada UMKM pending</h3>
-          <p className="text-sm text-slate-400">Semua UMKM sudah diverifikasi</p>
+          <h3 className="text-lg font-semibold text-slate-700 mb-1">Tidak ada UMK pending</h3>
+          <p className="text-sm text-slate-400">Semua UMK sudah diverifikasi</p>
         </GlassCard>
       ) : (
         <div className="flex flex-col gap-4">

@@ -206,7 +206,7 @@ function getCityCoords(city: string): { lat: number; lng: number } | null {
 }
 
 const LEGEND = [
-  { color: '#1e40af', label: '> 30 UMKM' },
+  { color: '#1e40af', label: '> 30 UMK' },
   { color: '#2563eb', label: '21 – 30' },
   { color: '#3b82f6', label: '11 – 20' },
   { color: '#60a5fa', label: '6 – 10'  },
@@ -298,9 +298,9 @@ export function MapPage({
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
           <p className="text-slate-500 mt-1">
-            Pemetaan interaktif UMKM binaan di seluruh Indonesia
+            Pemetaan interaktif UMK binaan di seluruh Indonesia
             {!loading && totalUmkm > 0 && (
-              <span className="ml-2 text-blue-600 font-medium">· {totalUmkm} UMKM terpetakan</span>
+              <span className="ml-2 text-blue-600 font-medium">· {totalUmkm} UMK terpetakan</span>
             )}
           </p>
         </div>
@@ -337,7 +337,7 @@ export function MapPage({
         {/* Legend */}
         <div className="absolute bottom-6 left-6 z-[1000] bg-white/90 backdrop-blur-md border border-slate-200 rounded-xl p-4 shadow-lg">
           <div className="flex items-center gap-1.5 mb-3 text-xs font-semibold text-slate-700">
-            <Info className="w-3.5 h-3.5" /> Jumlah UMKM
+            <Info className="w-3.5 h-3.5" /> Jumlah UMK
           </div>
           <div className="flex flex-col gap-1.5">
             {LEGEND.map((l) => (
@@ -361,7 +361,7 @@ export function MapPage({
                 <strong className="text-slate-900 text-right max-w-[120px] truncate">{selected.label}</strong>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500">Total UMKM</span>
+                <span className="text-slate-500">Total UMK</span>
                 <strong className="text-slate-900">{selected.count.toLocaleString('id-ID')}</strong>
               </div>
               <div className="flex justify-between items-center text-sm">
@@ -378,7 +378,7 @@ export function MapPage({
                   }}
                   className="w-full py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
                 >
-                  Lihat UMKM di Wilayah Ini
+                  Lihat UMK di Wilayah Ini
                 </button>
               </div>
             </div>

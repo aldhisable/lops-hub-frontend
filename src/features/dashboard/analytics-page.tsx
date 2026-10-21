@@ -141,7 +141,7 @@ export function AnalyticsPage({ title = 'Analytics & Insights' }: { title?: stri
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
-          <p className="text-slate-500 mt-1">Laporan kinerja dan analitik mendalam program UMKM</p>
+          <p className="text-slate-500 mt-1">Laporan kinerja dan analitik mendalam program UMK</p>
         </div>
       </div>
 
@@ -154,7 +154,7 @@ export function AnalyticsPage({ title = 'Analytics & Insights' }: { title?: stri
           iconColorClass="text-blue-600"
         />
         <KPICard
-          title="Total UMKM Aktif"
+          title="Total UMK Aktif"
           value={loading ? '—' : (stats?.totalUMKM ?? 0).toLocaleString('id-ID')}
           icon={Users}
           iconBgClass="bg-purple-50"
@@ -179,7 +179,7 @@ export function AnalyticsPage({ title = 'Analytics & Insights' }: { title?: stri
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <AnalyticsChart
           title="Tren Omzet Nasional"
-          subtitle="Total omzet UMKM (Rupiah)"
+          subtitle="Total omzet UMK (Rupiah)"
           data={trendChartData.length > 0 ? trendChartData : [{ month: '—', revenue: 0 }]}
           dataKey="revenue"
           xAxisKey="month"
@@ -208,7 +208,7 @@ export function AnalyticsPage({ title = 'Analytics & Insights' }: { title?: stri
                     <div className="flex justify-between items-center text-sm">
                       <span className="font-medium text-slate-700">{label}</span>
                       <div className="flex gap-4">
-                        <span className="font-semibold text-slate-900">{count} UMKM</span>
+                        <span className="font-semibold text-slate-900">{count} UMK</span>
                         <span className="text-slate-400 w-10 text-right">{pct}%</span>
                       </div>
                     </div>

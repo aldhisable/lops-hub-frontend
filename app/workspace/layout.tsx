@@ -54,7 +54,7 @@ function WorkspaceShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <InternalLayout sidebar={sidebar} topbar={<TopBar userName={user?.name ?? 'UMKM'} userRole="UMK Binaan" />}>
+    <InternalLayout sidebar={sidebar} topbar={<TopBar userName={user?.name ?? 'UMK'} userRole="UMK Binaan" />}>
       {isPending && <PendingBanner />}
       {loading || (isPending && !PENDING_ALLOWED_HREFS.includes(pathname)) ? null : children}
     </InternalLayout>

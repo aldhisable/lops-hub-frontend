@@ -81,7 +81,12 @@ export function LoginPage() {
 
         <p className="text-sm text-slate-500 text-center mt-5">
           Belum punya akun?{' '}
-          <Link href="/register" className="font-medium text-blue-600 hover:text-blue-700">Daftar sebagai UMKM</Link>
+          <Link
+            href="/register"
+            className="inline-block rounded-md px-1.5 py-1 font-medium text-blue-600! transition-[color,background-color,box-shadow,font-weight] duration-200 hover:bg-blue-50 hover:font-bold hover:text-blue-800! hover:shadow-sm focus-visible:bg-blue-50 focus-visible:font-bold focus-visible:text-blue-800! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 active:bg-blue-100 active:font-bold active:text-blue-900! motion-reduce:transition-none"
+          >
+            Daftar sebagai UMK
+          </Link>
         </p>
 
       </GlassCard>

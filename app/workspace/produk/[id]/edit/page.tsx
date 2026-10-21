@@ -82,7 +82,7 @@ export default function EditProduk() {
     if (!form.name.trim()) { setError('Nama produk wajib diisi.'); return; }
     if (!form.category) { setError('Jenis produk wajib dipilih.'); return; }
     if (!form.price || parseFloat(form.price) <= 0) { setError('Harga wajib diisi dan harus lebih dari 0.'); return; }
-    if (!umkm) { setError('Data UMKM belum dimuat, coba refresh.'); return; }
+    if (!umkm) { setError('Data UMK belum dimuat, coba refresh.'); return; }
 
     setSaving(true);
     try {
