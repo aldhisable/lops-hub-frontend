@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && typeof window !== 'undefined') {
+    if (err.response?.status === 401 && err.config?.url !== '/auth/register' && typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       window.location.href = '/login';
@@ -31,6 +31,8 @@ api.interceptors.response.use(
 
 // Auth
 export const authApi = {
+  checkRegistrationEmail: (email: string) =>
+    api.post<{ available: true }>('/auth/check-email', { email }),
   login: (email: string, password: string) =>
     api.post<{ token: string; user: AuthUser }>('/auth/login', { email, password }),
   // Registrasi publik selalu menghasilkan akun UMKM — role ditentukan server, bukan klien.

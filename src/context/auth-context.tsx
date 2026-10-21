@@ -10,7 +10,7 @@ interface RegisterInput {
   email: string;
   password: string;
   // Bukti verifikasi email dari Supabase, diperiksa ulang oleh backend.
-  otpToken?: string;
+  otpToken: string;
 }
 
 interface AuthContextValue {

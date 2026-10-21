@@ -8,7 +8,8 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { GlowButton } from '@/components/ui/glow-button';
 import { useAuth } from '@/context/auth-context';
 import { UMKM_CATEGORIES } from '@/lib/constants';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { authApi } from '@/lib/api';
 
 const inputCls =
   'px-4 py-2.5 rounded-lg border border-slate-200 bg-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all';
@@ -29,6 +30,7 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const [otp, setOtp] = useState('');
+  const [verifiedOtpToken, setVerifiedOtpToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
@@ -40,46 +42,47 @@ export function RegisterPage() {
     return () => clearInterval(t);
   }, [cooldown]);
 
-  // Hasil percobaan mengirim OTP.
-  //
-  // 'terkirim'       kode sudah dikirim, lanjut ke langkah verifikasi
-  // 'tak-tersedia'   layanan verifikasi belum dikonfigurasi atau tidak bisa
-  //                  dihubungi — pendaftaran diteruskan tanpa OTP, dan backend
-  //                  memang tidak menuntutnya selama Supabase belum terpasang
-  // 'gagal'          layanan hidup tetapi menolak; tampilkan pesannya
-  type HasilKirim = 'terkirim' | 'tak-tersedia' | 'gagal';
+  // Cek email sebelum setiap pengiriman. Gangguan tetap ditampilkan di halaman
+  // kode; akun hanya dibuat setelah OTP berhasil diverifikasi oleh server.
+  const sendOtp = async (address: string) => {
+    setVerifiedOtpToken(null);
+    try {
+      await authApi.checkRegistrationEmail(address);
+    } catch (err: unknown) {
+      const response = (err as { response?: { status?: number } }).response;
+      if (response?.status === 409) {
+        setPhase('form');
+        setError('Email sudah terdaftar. Silakan login atau gunakan email lain.');
+      } else {
+        setError('Email belum dapat diperiksa. Silakan klik Kirim ulang kode untuk mencoba lagi.');
+      }
+      return;
+    }
 
-  const sendOtp = async (): Promise<HasilKirim> => {
-    if (!supabase) return 'tak-tersedia';
+    if (!supabase) {
+      setError('Layanan pengiriman kode belum tersedia. Silakan klik Kirim ulang kode untuk mencoba lagi nanti.');
+      return;
+    }
 
     try {
       const { error: otpError } = await supabase.auth.signInWithOtp({
-        email,
+        email: address,
         options: { shouldCreateUser: true },
       });
       if (otpError) {
-        // Galat jaringan berarti proyek Supabase tidak bisa dihubungi; itu soal
-        // konfigurasi, bukan kesalahan pendaftar, jadi jangan menghadangnya.
-        const pesan = otpError.message ?? '';
-        if (/fetch|network|Failed to fetch|ENOTFOUND/i.test(pesan)) return 'tak-tersedia';
-        setError(pesan || 'Gagal mengirim kode OTP.');
-        return 'gagal';
+        setError(otpError.status === 429
+          ? 'Terlalu banyak permintaan kode. Tunggu sebentar, lalu klik Kirim ulang kode.'
+          : 'Kode OTP belum berhasil dikirim. Silakan klik Kirim ulang kode untuk mencoba lagi.');
+        if (otpError.status === 429) setCooldown(RESEND_COOLDOWN);
+        return;
       }
     } catch {
-      return 'tak-tersedia';
+      setError('Layanan pengiriman kode belum dapat dihubungi. Silakan klik Kirim ulang kode untuk mencoba lagi.');
+      return;
     }
 
     setCooldown(RESEND_COOLDOWN);
-    setInfo(`Kode OTP telah dikirim ke ${email}.`);
-    return 'terkirim';
-  };
-
-  // Buat akun tanpa langkah OTP. Dipakai bila layanan verifikasi email belum
-  // tersedia — backend menerima ini karena penegakan OTP di sana mengikuti
-  // ketersediaan konfigurasi Supabase yang sama.
-  const daftarTanpaOtp = async () => {
-    const { redirectTo } = await register({ name, umkmName, category, email, password });
-    router.push(redirectTo);
+    setInfo(`Kode OTP telah dikirim ke ${address}.`);
   };
 
   // Langkah 1: validasi form lalu kirim OTP
@@ -88,7 +91,8 @@ export function RegisterPage() {
     setError('');
     setInfo('');
 
-    if (!isValidEmail(email)) {
+    const address = email.trim().toLowerCase();
+    if (!isValidEmail(address)) {
       setError('Masukkan alamat email yang valid (OTP akan dikirim ke email ini).');
       return;
     }
@@ -102,14 +106,11 @@ export function RegisterPage() {
     }
 
     setIsLoading(true);
+    setEmail(address);
+    setOtp('');
+    setPhase('otp');
     try {
-      const hasil = await sendOtp();
-      if (hasil === 'terkirim') {
-        setOtp('');
-        setPhase('otp');
-      } else if (hasil === 'tak-tersedia') {
-        await daftarTanpaOtp();
-      }
+      await sendOtp(address);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Pendaftaran gagal. Silakan coba lagi.');
     } finally {
@@ -122,7 +123,10 @@ export function RegisterPage() {
     e.preventDefault();
     setError('');
 
-    if (!supabase) return;
+    if (!supabase) {
+      setError('Layanan verifikasi belum tersedia. Silakan klik Kirim ulang kode untuk mencoba lagi nanti.');
+      return;
+    }
     if (otp.trim().length < 6) {
       setError('Masukkan kode OTP dari email Anda.');
       return;
@@ -130,29 +134,39 @@ export function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const { data: hasilOtp, error: verifyError } = await supabase.auth.verifyOtp({
-        email,
-        token: otp.trim(),
-        type: 'email',
-      });
-      if (verifyError) {
-        setError('Kode OTP salah atau sudah kadaluarsa.');
-        return;
-      }
-
-      // Bawa access token-nya ke backend. Backend memeriksa ulang ke Supabase —
-      // verifikasi yang hanya dijalankan di browser bisa dilewati begitu saja
-      // dengan memanggil API-nya langsung.
-      const otpToken = hasilOtp.session?.access_token;
+      let otpToken = verifiedOtpToken;
       if (!otpToken) {
-        setError('Verifikasi email tidak menghasilkan sesi. Coba kirim ulang kode.');
-        return;
+        const { data: hasilOtp, error: verifyError } = await supabase.auth.verifyOtp({
+          email,
+          token: otp.trim(),
+          type: 'email',
+        });
+        if (verifyError) {
+          setError('Kode OTP salah, sudah kedaluwarsa, atau layanan belum tersedia. Periksa kode atau kirim ulang.');
+          return;
+        }
+        otpToken = hasilOtp.session?.access_token ?? null;
+        if (!otpToken) {
+          setError('Verifikasi email tidak menghasilkan sesi. Coba kirim ulang kode.');
+          return;
+        }
+        // Simpan hanya di memori agar retry backend tidak memakai ulang kode
+        // OTP yang sudah dikonsumsi oleh Supabase.
+        setVerifiedOtpToken(otpToken);
       }
 
       const { redirectTo } = await register({ name, umkmName, category, email, password, otpToken });
       router.push(redirectTo);
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Pendaftaran gagal. Silakan coba lagi.');
+    } catch (err: unknown) {
+      const response = (err as { response?: { status?: number; data?: { error?: string } } }).response;
+      if (response?.status === 409) {
+        setPhase('form');
+        setInfo('');
+        setVerifiedOtpToken(null);
+      } else if (response?.status === 401) {
+        setVerifiedOtpToken(null);
+      }
+      setError(response?.data?.error || 'Pendaftaran belum berhasil. Silakan coba lagi atau kirim ulang kode.');
     } finally {
       setIsLoading(false);
     }
@@ -164,7 +178,7 @@ export function RegisterPage() {
     setInfo('');
     setIsLoading(true);
     try {
-      await sendOtp();
+      await sendOtp(email);
     } finally {
       setIsLoading(false);
     }
@@ -181,7 +195,7 @@ export function RegisterPage() {
           <p className="text-slate-500 text-sm mt-2">
             {phase === 'form'
               ? 'Buat akun untuk mengelola usaha Anda di LOPs Hub'
-              : `Masukkan kode yang kami kirim ke ${email}`}
+              : `Masukkan kode OTP untuk memverifikasi ${email}`}
           </p>
         </div>
 
@@ -229,7 +243,7 @@ export function RegisterPage() {
             </div>
 
             {error && (
-              <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
+              <div role="alert" className="px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
             )}
 
             <GlowButton type="submit" variant="primary" className="w-full py-2.5 mt-2 rounded-lg" disabled={isLoading}>
@@ -239,25 +253,26 @@ export function RegisterPage() {
         ) : (
           <form onSubmit={handleVerifyOtp} className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700">Kode OTP</label>
+              <label htmlFor="registration-otp" className="text-sm font-medium text-slate-700">Kode OTP</label>
               <input
+                id="registration-otp"
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 maxLength={10}
                 required
                 value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => { setOtp(e.target.value.replace(/\D/g, '')); setVerifiedOtpToken(null); }}
                 className={`${inputCls} text-center text-lg tracking-[0.4em] font-semibold`}
                 placeholder="Masukkan kode dari email"
               />
             </div>
 
             {info && (
-              <div className="px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm">{info}</div>
+              <div role="status" className="px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm">{info}</div>
             )}
             {error && (
-              <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
+              <div role="alert" className="px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
             )}
 
             <GlowButton type="submit" variant="primary" className="w-full py-2.5 mt-2 rounded-lg" disabled={isLoading}>
@@ -265,7 +280,7 @@ export function RegisterPage() {
             </GlowButton>
 
             <div className="flex items-center justify-between text-sm">
-              <button type="button" onClick={() => { setPhase('form'); setError(''); setInfo(''); }} className="font-medium text-slate-500 hover:text-slate-700">
+              <button type="button" disabled={isLoading} onClick={() => { setPhase('form'); setError(''); setInfo(''); setVerifiedOtpToken(null); }} className="font-medium text-slate-500 hover:text-slate-700">
                 ← Ubah data
               </button>
               <button
@@ -287,11 +302,6 @@ export function RegisterPage() {
           </p>
         </div>
 
-        {!isSupabaseConfigured && (
-          <p className="mt-4 text-center text-xs text-amber-600">
-            ⚠ Supabase belum dikonfigurasi — isi NEXT_PUBLIC_SUPABASE_URL & ANON_KEY di .env.local
-          </p>
-        )}
       </GlassCard>
     </AuthLayout>
   );
