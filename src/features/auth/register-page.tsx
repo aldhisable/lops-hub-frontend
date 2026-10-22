@@ -12,7 +12,7 @@ import { supabase } from '@/lib/supabase';
 import { authApi } from '@/lib/api';
 
 const inputCls =
-  'px-4 py-2.5 rounded-lg border border-slate-200 bg-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all';
+  'auth-field px-4 py-2.5 rounded-lg border border-slate-500/80 focus:border-primary';
 
 const RESEND_COOLDOWN = 60;
 const isValidEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
@@ -189,13 +189,13 @@ export function RegisterPage() {
 
   return (
     <AuthLayout>
-      <GlassCard className="p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border-white/40 bg-white/70">
+      <GlassCard className="p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border-white/40 bg-white/70">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-4"><img src="/logo.png" alt="LOPs Hub" className="w-full h-full object-cover" /></div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             {phase === 'form' ? 'Daftar UMK' : 'Verifikasi Email'}
           </h1>
-          <p className="text-slate-500 text-sm mt-2">
+          <p className="break-words text-slate-600 text-sm mt-2">
             {phase === 'form'
               ? 'Buat akun untuk mengelola usaha Anda di LOPs Hub'
               : `Masukkan kode OTP untuk memverifikasi ${email}`}
@@ -203,24 +203,26 @@ export function RegisterPage() {
         </div>
 
         {phase === 'form' ? (
-          <form onSubmit={handleSubmitForm} className="flex flex-col gap-5">
+          <form key="registration-form" onSubmit={handleSubmitForm} aria-describedby={error ? 'registration-error' : undefined} aria-busy={isLoading} className="auth-step flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700">Nama Pemilik</label>
-              <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="Nama lengkap Anda" />
+              <label htmlFor="registration-name" className="text-sm font-medium text-slate-700">Nama Pemilik</label>
+              <input id="registration-name" name="name" autoComplete="name" type="text" required value={name} onChange={(e) => setName(e.target.value)} className={inputCls} placeholder="Nama lengkap Anda" />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700">Nama Usaha</label>
-              <input type="text" required value={umkmName} onChange={(e) => setUmkmName(e.target.value)} className={inputCls} placeholder="Nama UMK / brand usaha" />
+              <label htmlFor="registration-business" className="text-sm font-medium text-slate-700">Nama Usaha</label>
+              <input id="registration-business" name="organization" autoComplete="organization" type="text" required value={umkmName} onChange={(e) => setUmkmName(e.target.value)} className={inputCls} placeholder="Nama UMK / brand usaha" />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700">Kategori Usaha</label>
+              <label htmlFor="registration-category" className="text-sm font-medium text-slate-700">Kategori Usaha</label>
               <select
+                id="registration-category"
+                name="category"
                 required
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className={`${inputCls} bg-white/50 ${category ? 'text-slate-900' : 'text-slate-400'}`}
+                className={inputCls}
               >
                 <option value="" disabled>Pilih kategori usaha</option>
                 {UMKM_CATEGORIES.map((c) => (
@@ -230,23 +232,24 @@ export function RegisterPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700">Email</label>
-              <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="email@usaha.id" />
-              <p className="text-xs text-slate-400">Kode OTP akan dikirim ke email ini untuk verifikasi.</p>
+              <label htmlFor="registration-email" className="text-sm font-medium text-slate-700">Email</label>
+              <input id="registration-email" name="email" autoComplete="email" autoCapitalize="none" spellCheck={false} aria-describedby="registration-email-hint" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} placeholder="email@usaha.id" />
+              <p id="registration-email-hint" className="text-sm text-slate-600">Kode OTP akan dikirim ke email ini untuk verifikasi.</p>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700">Password</label>
-              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="Minimal 6 karakter" />
+              <label htmlFor="registration-password" className="text-sm font-medium text-slate-700">Password</label>
+              <input id="registration-password" name="password" autoComplete="new-password" aria-describedby="registration-password-hint" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} placeholder="Minimal 6 karakter" />
+              <p id="registration-password-hint" className="text-sm text-slate-600">Gunakan minimal 6 karakter.</p>
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-slate-700">Konfirmasi Password</label>
-              <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputCls} placeholder="Ulangi password" />
+              <label htmlFor="registration-confirm-password" className="text-sm font-medium text-slate-700">Konfirmasi Password</label>
+              <input id="registration-confirm-password" name="confirmPassword" autoComplete="new-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputCls} placeholder="Ulangi password" />
             </div>
 
             {error && (
-              <div role="alert" className="px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
+              <div id="registration-error" role="alert" className="auth-feedback px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
             )}
 
             <GlowButton type="submit" variant="primary" className="w-full py-2.5 mt-2 rounded-lg" disabled={isLoading}>
@@ -254,43 +257,46 @@ export function RegisterPage() {
             </GlowButton>
           </form>
         ) : (
-          <form onSubmit={handleVerifyOtp} className="flex flex-col gap-5">
+          <form key="registration-otp" onSubmit={handleVerifyOtp} aria-describedby={error ? 'registration-otp-error' : undefined} aria-busy={isLoading} className="auth-step flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="registration-otp" className="text-sm font-medium text-slate-700">Kode OTP</label>
               <input
                 id="registration-otp"
+                name="otp"
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 maxLength={10}
                 required
+                autoFocus
+                aria-describedby={error ? 'registration-otp-error' : undefined}
                 value={otp}
                 onChange={(e) => { setOtp(e.target.value.replace(/\D/g, '')); setVerifiedOtpToken(null); }}
-                className={`${inputCls} text-center text-lg tracking-[0.4em] font-semibold`}
+                className={`${inputCls} text-center tracking-[0.2em] font-semibold placeholder:tracking-normal`}
                 placeholder="Masukkan kode dari email"
               />
             </div>
 
             {info && (
-              <div role="status" className="px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm">{info}</div>
+              <div role="status" className="auth-feedback px-4 py-3 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm">{info}</div>
             )}
             {error && (
-              <div role="alert" className="px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">{error}</div>
+              <div id="registration-otp-error" role="alert" className="auth-feedback px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
             )}
 
             <GlowButton type="submit" variant="primary" className="w-full py-2.5 mt-2 rounded-lg" disabled={isLoading}>
               {isLoading ? loadingText : 'Verifikasi & Daftar'}
             </GlowButton>
 
-            <div className="flex items-center justify-between text-sm">
-              <button type="button" disabled={isLoading} onClick={() => { setPhase('form'); setError(''); setInfo(''); setVerifiedOtpToken(null); }} className="font-medium text-slate-500 hover:text-slate-700">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+              <button type="button" disabled={isLoading} onClick={() => { setPhase('form'); setError(''); setInfo(''); setVerifiedOtpToken(null); }} className="min-h-[44px] rounded-md px-2 font-medium text-slate-600 hover:bg-white/80 hover:text-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60">
                 ← Ubah data
               </button>
               <button
                 type="button"
                 onClick={handleResend}
                 disabled={cooldown > 0 || isLoading}
-                className="font-medium text-blue-600 hover:text-blue-700 disabled:text-slate-400 disabled:cursor-not-allowed"
+                className="min-h-[44px] rounded-md px-2 font-medium text-blue-700 hover:bg-blue-50 hover:text-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-60 tabular-nums"
               >
                 {cooldown > 0 ? `Kirim ulang (${cooldown}s)` : 'Kirim ulang kode'}
               </button>
@@ -299,9 +305,9 @@ export function RegisterPage() {
         )}
 
         <div className="mt-6 pt-5 border-t border-slate-100 text-center">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600">
             Sudah punya akun?{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-700">Login di sini</Link>
+            <Link href="/login" className="inline-block rounded-md px-1.5 py-1 font-semibold text-blue-700! hover:bg-blue-50 hover:text-blue-800! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Login di sini</Link>
           </p>
         </div>
 

@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401 && err.config?.url !== '/auth/register' && typeof window !== 'undefined') {
+    if (err.response?.status === 401 && !['/auth/register', '/auth/reset-password'].includes(err.config?.url) && typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       window.location.href = '/login';
@@ -45,6 +45,8 @@ export const authApi = {
   updateAccount: (data: { name: string }) => api.patch<AuthUser>('/auth/me', data),
   changePassword: (oldPassword: string, newPassword: string) =>
     api.post<{ message: string }>('/auth/change-password', { oldPassword, newPassword }),
+  resetPassword: (email: string, code: string, newPassword: string) =>
+    api.post<{ message: string }>('/auth/reset-password', { email, code, newPassword }, { timeout: 30000 }),
 };
 
 // UMKM

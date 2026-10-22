@@ -33,43 +33,52 @@ export function LoginPage() {
 
   return (
     <AuthLayout>
-      <GlassCard className="p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border-white/40 bg-white/70">
+      <GlassCard className="p-6 sm:p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border-white/40 bg-white/70">
         <div className="text-center mb-8">
           <div className="w-12 h-12 rounded-full overflow-hidden mx-auto mb-4"><img src="/logo.png" alt="LOPs Hub" className="w-full h-full object-cover" /></div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">LOPs Hub</h1>
-          <p className="text-slate-500 text-sm mt-2">Local Pride Spot — Intelligence & Growth Platform</p>
+          <p className="text-slate-600 text-sm mt-2">Local Pride Spot — Intelligence & Growth Platform</p>
         </div>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-5">
+        <form onSubmit={handleLogin} aria-describedby={error ? 'login-error' : undefined} aria-busy={isLoading} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
-            <label className="text-sm font-medium text-slate-700">Email / No. HP</label>
+            <label htmlFor="login-identifier" className="text-sm font-medium text-slate-700">Email</label>
             <input
-              type="text"
+              id="login-identifier"
+              name="username"
+              type="email"
+              inputMode="email"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-              placeholder="email@pelindo.co.id atau 081234567890"
+              className="auth-field px-4 py-2.5 rounded-lg border border-slate-500/80 focus:border-primary"
+              placeholder="email@usaha.id"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-slate-700">Password</label>
-              <a href="#" className="text-xs font-medium text-blue-600 hover:text-blue-700">Lupa Password?</a>
+              <label htmlFor="login-password" className="text-sm font-medium text-slate-700">Password</label>
+              <Link href="/forgot-password" className="inline-flex min-h-[44px] items-center rounded-md px-2 text-xs font-medium text-blue-700! hover:bg-blue-50 hover:text-blue-800! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Lupa Password?</Link>
             </div>
             <input
+              id="login-password"
+              name="password"
               type="password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="px-4 py-2.5 rounded-lg border border-slate-200 bg-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all"
-              placeholder="••••••••"
+              className="auth-field px-4 py-2.5 rounded-lg border border-slate-500/80 focus:border-primary"
+              placeholder="Masukkan password"
             />
           </div>
 
           {error && (
-            <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm">
+            <div id="login-error" role="alert" className="auth-feedback px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
               {error}
             </div>
           )}
@@ -79,11 +88,11 @@ export function LoginPage() {
           </GlowButton>
         </form>
 
-        <p className="text-sm text-slate-500 text-center mt-5">
+        <p className="text-sm text-slate-600 text-center mt-5">
           Belum punya akun?{' '}
           <Link
             href="/register"
-            className="inline-block rounded-md px-1.5 py-1 font-medium text-blue-600! transition-[color,background-color,box-shadow,font-weight] duration-200 hover:bg-blue-50 hover:font-bold hover:text-blue-800! hover:shadow-sm focus-visible:bg-blue-50 focus-visible:font-bold focus-visible:text-blue-800! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 active:bg-blue-100 active:font-bold active:text-blue-900! motion-reduce:transition-none"
+            className="inline-block rounded-md px-1.5 py-1 font-semibold text-blue-700! hover:bg-blue-50 hover:text-blue-800! hover:shadow-sm focus-visible:bg-blue-50 focus-visible:text-blue-800! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary active:bg-blue-100 active:text-blue-900!"
           >
             Daftar sebagai UMK
           </Link>
