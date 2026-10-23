@@ -75,7 +75,7 @@ export default function RegionalSettings() {
         <GlassCard className="p-8">
           <h3 className="text-lg font-bold text-slate-900 mb-1">Profil Akun</h3>
           <p className="text-sm text-slate-500 mb-6">
-            Wilayah penugasan ditetapkan oleh Admin Pusat dan tidak bisa diubah dari sini.
+            Wilayah penugasan ditetapkan oleh Super Admin dan tidak bisa diubah dari sini.
           </p>
 
           {nameMsg && (

@@ -14,7 +14,7 @@ type TopBarProps = {
 }
 
 const ROLE_LABEL: Record<string, string> = {
-  ADMIN_PUSAT: 'Admin Pusat',
+  ADMIN_PUSAT: 'Super Admin',
   ADMIN_REGIONAL: 'Admin Regional',
   UMKM: 'UMK Binaan',
 };
@@ -31,7 +31,7 @@ export function TopBar({ searchPlaceholder = "Cari nama UMK...", userName, userR
   const helpRef = useRef<HTMLDivElement>(null);
 
   const displayName = userName ?? authUser?.name ?? 'Pengguna';
-  const displayRole = userRole ?? (authUser ? ROLE_LABEL[authUser.role] ?? authUser.role : 'Guest');
+  const displayRole = userRole ?? (authUser?.isSuperAdmin && authUser.role === 'ADMIN_PUSAT' ? 'Super Admin' : authUser ? ROLE_LABEL[authUser.role] ?? authUser.role : 'Guest');
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase();
   const { toggleMobileSidebar } = useLayout();
 

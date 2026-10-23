@@ -7,7 +7,7 @@ import { useAuth } from '@/context/auth-context';
 import { authApi } from '@/lib/api';
 
 const ROLE_LABEL: Record<string, string> = {
-  ADMIN_PUSAT: 'Admin Pusat',
+  ADMIN_PUSAT: 'Super Admin',
   ADMIN_REGIONAL: 'Admin Regional',
   UMKM: 'UMK Binaan',
 };

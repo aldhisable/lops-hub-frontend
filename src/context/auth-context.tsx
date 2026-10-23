@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { authApi, AuthUser } from '@/lib/api';
+import { homeForRole } from '@/lib/role-access';
 
 interface RegisterInput {
   name: string;
@@ -17,6 +18,8 @@ interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
   isLoading: boolean;
+  sessionError: string;
+  refreshSession: (background?: boolean) => Promise<void>;
   login: (email: string, password: string) => Promise<{ redirectTo: string }>;
   register: (data: RegisterInput) => Promise<{ redirectTo: string }>;
   updateUser: (partial: Partial<AuthUser>) => void;
@@ -29,29 +32,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionError, setSessionError] = useState('');
+  const requestId = useRef(0);
+
+  const refreshSession = useCallback(async (background = false) => {
+    const currentRequest = ++requestId.current;
+    const storedToken = localStorage.getItem('auth_token');
+    if (!background) { setIsLoading(true); setUser(null); }
+    setSessionError('');
+    setToken(storedToken);
+    if (!storedToken) { setUser(null); setIsLoading(false); return; }
+    try {
+      const { data } = await authApi.me();
+      if (currentRequest !== requestId.current || localStorage.getItem('auth_token') !== storedToken) return;
+      setUser(data);
+      localStorage.setItem('auth_user', JSON.stringify(data));
+    } catch {
+      if (currentRequest === requestId.current) setSessionError('Identitas akun belum dapat diperiksa. Coba kembali.');
+    } finally {
+      if (currentRequest === requestId.current) setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedUser = localStorage.getItem('auth_user');
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
+    const sessionRequests = requestId;
+    let active = true;
+    void Promise.resolve().then(() => { if (active) return refreshSession(); });
+    const onFocus = () => { if (localStorage.getItem('auth_token')) void refreshSession(true); };
+    const onStorage = (event: StorageEvent) => { if (event.key === 'auth_token' || event.key === null) void refreshSession(); };
+    const onToken = (event: Event) => { requestId.current++; setToken((event as CustomEvent<string>).detail); };
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('auth-session-token', onToken);
+    return () => {
+      active = false;
+      sessionRequests.current++;
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('auth-session-token', onToken);
+    };
+  }, [refreshSession]);
 
   const login = async (email: string, password: string) => {
     const { data } = await authApi.login(email, password);
+    requestId.current++;
+    setIsLoading(false); setSessionError('');
     localStorage.setItem('auth_token', data.token);
     localStorage.setItem('auth_user', JSON.stringify(data.user));
     setToken(data.token);
     setUser(data.user);
 
     // Role-based redirect
-    const redirectTo =
-      data.user.role === 'ADMIN_PUSAT' ? '/dashboard' :
-      data.user.role === 'ADMIN_REGIONAL' ? '/regional' :
-      '/workspace';
+    const redirectTo = homeForRole(data.user.role);
 
     return { redirectTo };
   };
@@ -65,6 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       category: input.category,
       otpToken: input.otpToken,
     });
+    requestId.current++;
+    setIsLoading(false); setSessionError('');
     localStorage.setItem('auth_token', data.token);
     localStorage.setItem('auth_user', JSON.stringify(data.user));
     setToken(data.token);
@@ -84,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    requestId.current++;
     localStorage.removeItem('auth_token');
     localStorage.removeItem('auth_user');
     setToken(null);
@@ -92,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, updateUser, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, sessionError, refreshSession, login, register, updateUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

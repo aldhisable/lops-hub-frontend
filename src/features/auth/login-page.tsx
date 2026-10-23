@@ -88,6 +88,7 @@ export function LoginPage() {
           </GlowButton>
         </form>
 
+        <p className="text-sm text-center mt-5"><Link href="/activate-account" className="font-medium text-blue-700!">Menerima undangan admin? Aktivasi akun</Link></p>
         <p className="text-sm text-slate-600 text-center mt-5">
           Belum punya akun?{' '}
           <Link

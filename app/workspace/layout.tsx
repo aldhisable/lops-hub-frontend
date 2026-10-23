@@ -9,6 +9,7 @@ import { TopBar } from '@/components/layout/top-bar';
 import { umkmBrandConfig, umkmMainNavItems, umkmSupportNavItems } from '@/config/workspace-sidebar-config';
 import { useAuth } from '@/context/auth-context';
 import { WorkspaceProvider, useWorkspace } from '@/context/workspace-context';
+import { RoleGuard } from '@/components/layout/role-guard';
 
 const PROFIL_HREF = '/workspace/profil';
 const PENDING_ALLOWED_HREFS = [PROFIL_HREF, '/workspace/settings'];
@@ -63,8 +64,8 @@ function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
 export default function WorkspaceLayout({ children }: { children: React.ReactNode }) {
   return (
-    <WorkspaceProvider>
+    <RoleGuard role="UMKM"><WorkspaceProvider>
       <WorkspaceShell>{children}</WorkspaceShell>
-    </WorkspaceProvider>
+    </WorkspaceProvider></RoleGuard>
   );
 }

@@ -12,7 +12,7 @@ const inputCls = 'auth-field px-4 py-2.5 rounded-lg border border-slate-500/80 f
 const linkCls = 'inline-flex min-h-[44px] items-center justify-center rounded-md px-2 text-sm font-medium text-blue-700! hover:bg-blue-50 hover:text-blue-800! focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60';
 const RESEND_COOLDOWN = 60;
 
-export function ForgotPasswordPage() {
+export function ForgotPasswordPage({ activation = false }: { activation?: boolean } = {}) {
   const [phase, setPhase] = useState<'email' | 'reset' | 'success'>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -23,6 +23,20 @@ export function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const isLoading = action !== null;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const address = params.get('email')?.trim().toLowerCase();
+    if (address && address.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) {
+      setEmail(address);
+      // The email already contains a code; do not invalidate it by sending another on load.
+      if (params.get('codeSent') === '1') {
+        setPhase('reset');
+        setCooldown(60);
+        setInfo('Masukkan kode yang sudah Anda terima melalui email.');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -114,9 +128,9 @@ export function ForgotPasswordPage() {
       <GlassCard className="p-6 sm:p-8">
         <div className="mb-6 text-center">
           <img src="/logo.png" alt="LOPs Hub" width={48} height={48} className="mx-auto mb-4 rounded-full" />
-          <h1 className="text-2xl font-bold text-slate-900">{phase === 'success' ? 'Password Diperbarui' : 'Lupa Password?'}</h1>
+          <h1 className="text-2xl font-bold text-slate-900">{phase === 'success' ? 'Password Diperbarui' : activation ? 'Aktivasi Akun Admin' : 'Lupa Password?'}</h1>
           <p className="mt-2 text-sm text-slate-600 [overflow-wrap:anywhere]">
-            {phase === 'email' ? 'Gunakan email yang terdaftar pada akun LOPs Hub.'
+            {phase === 'email' ? activation ? 'Gunakan email undangan Anda untuk menetapkan password akun admin.' : 'Gunakan email yang terdaftar pada akun LOPs Hub.'
               : phase === 'reset' ? `Masukkan kode dari email ${email} dan password baru Anda.`
                 : 'Akun Anda siap digunakan kembali.'}
           </p>

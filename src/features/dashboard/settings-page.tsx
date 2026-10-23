@@ -99,7 +99,7 @@ export function SettingsPage() {
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-slate-700">Role</label>
-                <input value="Admin Pusat" disabled className={readonlyCls} />
+                <input value="Super Admin" disabled className={readonlyCls} />
               </div>
             </div>
             <div className="flex justify-end">

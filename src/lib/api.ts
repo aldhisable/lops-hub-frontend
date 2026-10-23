@@ -18,9 +18,15 @@ api.interceptors.request.use((config) => {
 
 // Redirect to login on 401
 api.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    if (res.config.url === '/auth/change-password' && res.data.token && typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', res.data.token);
+      window.dispatchEvent(new CustomEvent('auth-session-token', { detail: res.data.token }));
+    }
+    return res;
+  },
   (err) => {
-    if (err.response?.status === 401 && !['/auth/register', '/auth/reset-password'].includes(err.config?.url) && typeof window !== 'undefined') {
+    if (err.response?.status === 401 && !['/auth/login', '/auth/register', '/auth/reset-password'].includes(err.config?.url) && typeof window !== 'undefined') {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       window.location.href = '/login';
@@ -358,4 +364,27 @@ export interface AuthUser {
   name: string;
   role: 'ADMIN_PUSAT' | 'ADMIN_REGIONAL' | 'UMKM';
   regional?: string | null;
+  isSuperAdmin: boolean;
+  isActive: boolean;
+  passwordSetupRequired: boolean;
 }
+
+export interface AdminAccount {
+  id: string; name: string; email: string; regional: string;
+  role: 'ADMIN_REGIONAL'; isActive: boolean; passwordSetupRequired: boolean;
+  createdAt: string; updatedAt: string;
+}
+export interface EmailDelivery {
+  status: 'sent' | 'failed' | 'cooldown'; message: string; retryAfter?: number;
+}
+export type AdminAccountInput = Pick<AdminAccount, 'name' | 'email' | 'regional'>;
+export const adminUsersApi = {
+  list: (params: { page: number; search?: string; regional?: string; status?: string }) =>
+    api.get<{ data: AdminAccount[]; total: number; page: number; totalPages: number }>('/admin-users', { params }),
+  create: (data: AdminAccountInput) => api.post<{ account: AdminAccount; emailDelivery: EmailDelivery }>('/admin-users', data),
+  update: (id: string, data: Partial<AdminAccountInput> & { isActive?: boolean }) =>
+    api.patch<{ account: AdminAccount; emailDelivery?: EmailDelivery }>(`/admin-users/${id}`, data),
+  sendEmail: (account: AdminAccount) => api.post<{ emailDelivery: EmailDelivery }>(
+    `/admin-users/${account.id}/${account.passwordSetupRequired ? 'send-activation' : 'send-password-reset'}`,
+  ),
+};

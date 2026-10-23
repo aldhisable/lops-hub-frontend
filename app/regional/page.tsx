@@ -55,7 +55,7 @@ export default function RegionalDashboard() {
     return (
       <GlassCard className="p-12 text-center text-slate-500">
         Akun Anda belum ditetapkan ke wilayah mana pun, sehingga tidak ada data yang bisa ditampilkan.
-        Hubungi Admin Pusat untuk penetapan wilayah.
+        Hubungi Super Admin untuk penetapan wilayah.
       </GlassCard>
     );
   }

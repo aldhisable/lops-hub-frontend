@@ -8,6 +8,7 @@ import { InternalLayout } from '@/components/layout/internal-layout';
 import { regionalBrandConfig, regionalMainNavItems, regionalDataNavItems, regionalAnalyticsNavItems, regionalSupportNavItems } from '@/config/regional-sidebar-config';
 import { MapPin } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { RoleGuard } from '@/components/layout/role-guard';
 
 function RegionalSidebar({ activePath }: { activePath: string }) {
   const { user } = useAuth();
@@ -70,12 +71,12 @@ function NavSection({ items, activePath }: { items: typeof regionalMainNavItems;
 export default function RegionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <RoleGuard role="ADMIN_REGIONAL"><div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <RegionalSidebar activePath={pathname} />
       <div className="flex-1 ml-[280px] flex flex-col">
         <TopBar />
         <main className="flex-1 p-8">{children}</main>
       </div>
-    </div>
+    </div></RoleGuard>
   );
 }
